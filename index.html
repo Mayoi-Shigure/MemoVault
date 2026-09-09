@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Message Board</title>
+</head>
+<body>
+    <h1>My Message Board</h1>
+
+    <form action="/notes" method="POST">
+
+        <p>Title:</p>
+        <input type="text" name="title">
+
+        <p>Content:</p>
+        <textarea name="content"></textarea>
+
+        <p>URL:</p>
+        <input type="text" name="url">
+
+        <br><br>
+
+        <button type="submit">Save</button>
+
+    </form>
+
+    <br>
+
+    <a href="/notes">View Notes</a>
+</body>
+</html>
