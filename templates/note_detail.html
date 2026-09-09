@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ note.title }}</title>
+</head>
+
+<body>
+    <h1>{{ note.title }}</h1>
+
+    <p>{{ note.content }}</p>
+
+    {% if note.url %}
+        <p>
+            <a href="{{ note.url }}" target="_blank">
+                Open Original Link
+            </a>
+        </p>
+    {% endif %}
+
+    <hr>
+
+    <p>Created: {{ note.created_at }}</p>
+    <p>Last Updated: {{ note.updated_at }}</p>
+
+    <br>
+
+    <a href="/notes/{{ note.id }}/edit">
+        Edit
+    </a>
+
+    <br><br>
+
+    <form
+        action="/notes/{{ note.id }}/delete"
+        method="POST"
+        onsubmit="return confirm('确定要删除这条记录吗？')"
+    >
+        <button type="submit">
+            Delete
+        </button>
+    </form>
+
+    <br>
+
+    <a href="/notes">
+        Back to Notes
+    </a>
+</body>
+</html>

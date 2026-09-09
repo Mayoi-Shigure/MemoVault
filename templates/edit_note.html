@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Note</title>
+</head>
+
+<body>
+
+    <h1>Edit Note</h1>
+
+    <form action="/notes/{{ note.id }}/edit" method="POST">
+
+        <p>
+            <input
+                type="text"
+                name="title"
+                value="{{ note.title }}"
+                required
+            >
+        </p>
+
+        <p>
+            <textarea name="content">{{ note.content }}</textarea>
+        </p>
+
+        <p>
+            <input
+                type="text"
+                name="url"
+                value="{{ note.url or '' }}"
+            >
+        </p>
+
+        <button type="submit">
+            Save Changes
+        </button>
+
+    </form>
+
+    <p>
+        <a href="/notes/{{ note.id }}">
+            Cancel
+        </a>
+    </p>
+
+</body>
+</html>

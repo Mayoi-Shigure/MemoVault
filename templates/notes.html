@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>MemoVault Notes</title>
+</head>
+
+<body>
+    <h1>MemoVault Notes</h1>
+
+    <h2>Add New Note</h2>
+
+    <form action="/notes" method="POST">
+        <p>
+            <input
+                type="text"
+                name="title"
+                placeholder="Title"
+                required
+            >
+        </p>
+
+        <p>
+            <textarea
+                name="content"
+                placeholder="Content"
+            ></textarea>
+        </p>
+
+        <p>
+            <input
+                type="text"
+                name="url"
+                placeholder="URL (optional)"
+            >
+        </p>
+
+        <button type="submit">
+            Save Note
+        </button>
+    </form>
+
+    {% for note in notes %}
+        <hr>
+
+        <h2>
+            <a href="/notes/{{ note.id }}">
+                {{ note.title }}
+            </a>
+        </h2>
+
+        <p>{{ note.content }}</p>
+
+        <p>Created: {{ note.created_at }}</p>
+
+        {% if note.url %}
+            <p>
+                <a href="{{ note.url }}" target="_blank">
+                    Open Link
+                </a>
+            </p>
+        {% endif %}
+    {% endfor %}
+
+    <hr>
+
+    <a href="/">Back to Home</a>
+</body>
+</html>
