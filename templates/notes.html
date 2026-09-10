@@ -1,12 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>MemoVault Notes</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}MemoVault Notes{% endblock %}
+
+{% block content %}
     <h1>MemoVault Notes</h1>
+
+    <form action="/notes" method="GET">
+        <input
+            type="text"
+            name="q"
+            placeholder="Search notes..."
+            value="{{ q }}"
+        >
+
+        <button type="submit">
+            Search
+        </button>
+    </form>
 
     <h2>Add New Note</h2>
 
@@ -60,10 +70,14 @@
                 </a>
             </p>
         {% endif %}
+
+    {% else %}
+
+        <p>No notes found.</p>
+
     {% endfor %}
 
     <hr>
 
     <a href="/">Back to Home</a>
-</body>
-</html>
+{% endblock %}

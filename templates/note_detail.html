@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>{{ note.title }}</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}{{ note.title }}{% endblock %}
+
+{% block content %}
     <h1>{{ note.title }}</h1>
 
     <p>{{ note.content }}</p>
@@ -46,5 +43,4 @@
     <a href="/notes">
         Back to Notes
     </a>
-</body>
-</html>
+{% endblock %}

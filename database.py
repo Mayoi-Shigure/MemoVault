@@ -100,3 +100,29 @@ def delete_note(note_id):
 
     cursor.close()
     connection.close()
+    
+def search_notes(keyword):
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    sql = """
+    SELECT id, title, content, url, created_at, updated_at
+    FROM notes
+    WHERE title LIKE %s
+       OR content LIKE %s
+    ORDER BY updated_at DESC
+    """
+
+    search_value = f"%{keyword}%"
+
+    cursor.execute(
+        sql,
+        (search_value, search_value)
+    )
+
+    rows = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    return rows

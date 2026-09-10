@@ -1,11 +1,14 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from database import get_notes, get_note, add_note, update_note, delete_note
+from database import get_notes, get_note, add_note, update_note, delete_note, search_notes
 
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 
@@ -20,13 +23,19 @@ def home(request: Request):
 
 
 @app.get("/notes", response_class=HTMLResponse)
-def notes(request: Request):
-    rows = get_notes()
+def notes(request: Request, q: str = ""):
+    if q:
+        rows = search_notes(q)
+    else:
+        rows = get_notes()
 
     return templates.TemplateResponse(
         request=request,
         name="notes.html",
-        context={"notes": rows}
+        context={
+            "notes": rows,
+            "q": q
+        }
     )
 
 @app.post("/notes")

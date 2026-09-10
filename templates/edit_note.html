@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Edit Note</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}Edit Note{% endblock %}
 
+{% block content %}
     <h1>Edit Note</h1>
 
     <form action="/notes/{{ note.id }}/edit" method="POST">
@@ -43,6 +39,4 @@
             Cancel
         </a>
     </p>
-
-</body>
-</html>
+{% endblock %}

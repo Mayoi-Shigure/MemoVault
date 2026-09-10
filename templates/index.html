@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Message Board</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}MemoVault{% endblock %}
+
+{% block content %}
     <h1>My Message Board</h1>
 
     <form action="/notes" method="POST">
@@ -27,5 +25,4 @@
     <br>
 
     <a href="/notes">View Notes</a>
-</body>
-</html>
+{% endblock %}
