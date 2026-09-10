@@ -3,26 +3,57 @@
 {% block title %}MemoVault{% endblock %}
 
 {% block content %}
-    <h1>My Message Board</h1>
+    <section class="workspace-header">
+        <div>
+            <h1>MemoVault</h1>
+            <p>Personal searchable digital memory vault.</p>
+        </div>
+    </section>
 
-    <form action="/notes" method="POST">
+    <section class="dashboard-panel">
+        <form class="search-form" action="/notes" method="GET">
+            <input
+                type="text"
+                name="q"
+                placeholder="Search your library..."
+            >
+            <button type="submit">Search</button>
+        </form>
 
-        <p>Title:</p>
-        <input type="text" name="title">
+        <div class="action-row">
+            <a class="button" href="/notes#add-record">Add Record</a>
+            <a class="button button-secondary" href="/notes">View Library</a>
+        </div>
+    </section>
 
-        <p>Content:</p>
-        <textarea name="content"></textarea>
+    <section class="content-section">
+        <div class="section-heading">
+            <h2>Recently Updated</h2>
+            <a href="/notes">View all records</a>
+        </div>
 
-        <p>URL:</p>
-        <input type="text" name="url">
+        <div class="recent-list">
+            {% for note in recent_notes %}
+                <article class="recent-item">
+                    <div class="recent-content">
+                        <a class="item-title" href="/notes/{{ note.id }}">
+                            {{ note.title }}
+                        </a>
 
-        <br><br>
+                        <p class="item-summary">
+                            {{ (note.content or '')[:130] }}{% if note.content and note.content|length > 130 %}...{% endif %}
+                        </p>
+                    </div>
 
-        <button type="submit">Save</button>
-
-    </form>
-
-    <br>
-
-    <a href="/notes">View Notes</a>
+                    <time class="item-meta">Updated {{ note.updated_at }}</time>
+                </article>
+            {% else %}
+                <div class="empty-state">
+                    <h2>No records yet</h2>
+                    <p>Start by adding your first saved record, link, idea, or reference.</p>
+                    <a class="button" href="/notes#add-record">Add Record</a>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
 {% endblock %}

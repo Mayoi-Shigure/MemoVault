@@ -3,44 +3,74 @@
 {% block title %}{{ note.title }}{% endblock %}
 
 {% block content %}
-    <h1>{{ note.title }}</h1>
+    <article class="reader-page">
+        <div class="back-link">
+            <a href="/notes">Back to Library</a>
+        </div>
 
-    <p>{{ note.content }}</p>
+        <header class="reader-header">
+            <h1>{{ note.title }}</h1>
 
-    {% if note.url %}
-        <p>
-            <a href="{{ note.url }}" target="_blank">
-                Open Original Link
+            <div class="record-meta-panel">
+                {% if note.url %}
+                    <p>
+                        <span>Source</span>
+                        <a href="{{ note.url }}" target="_blank" rel="noopener noreferrer">
+                            {{ note.url }}
+                        </a>
+                    </p>
+                {% endif %}
+
+                <p>
+                    <span>Created</span>
+                    {{ note.created_at }}
+                </p>
+
+                <p>
+                    <span>Updated</span>
+                    {{ note.updated_at }}
+                </p>
+            </div>
+        </header>
+
+        <div class="reader-content">
+            <p>{{ note.content }}</p>
+        </div>
+
+        <footer class="reader-actions">
+            <a class="button button-secondary" href="/notes/{{ note.id }}/edit">
+                Edit
             </a>
-        </p>
-    {% endif %}
 
-    <hr>
+            <button class="button-danger" type="button" data-modal-open="delete-record-modal">
+                Delete
+            </button>
+        </footer>
+    </article>
 
-    <p>Created: {{ note.created_at }}</p>
-    <p>Last Updated: {{ note.updated_at }}</p>
+    <div class="modal-backdrop" id="delete-record-modal" aria-hidden="true">
+        <section class="modal-dialog modal-dialog-small" role="dialog" aria-modal="true" aria-labelledby="delete-record-title">
+            <header class="modal-header">
+                <div>
+                    <h2 id="delete-record-title">Delete Record</h2>
+                    <p>Are you sure you want to delete this record?</p>
+                </div>
 
-    <br>
+                <button class="icon-button" type="button" aria-label="Close dialog" data-modal-close>
+                    &times;
+                </button>
+            </header>
 
-    <a href="/notes/{{ note.id }}/edit">
-        Edit
-    </a>
-
-    <br><br>
-
-    <form
-        action="/notes/{{ note.id }}/delete"
-        method="POST"
-        onsubmit="return confirm('确定要删除这条记录吗？')"
-    >
-        <button type="submit">
-            Delete
-        </button>
-    </form>
-
-    <br>
-
-    <a href="/notes">
-        Back to Notes
-    </a>
+            <form action="/notes/{{ note.id }}/delete" method="POST">
+                <div class="modal-actions">
+                    <button class="button button-secondary" type="button" data-modal-close>
+                        Cancel
+                    </button>
+                    <button class="button-danger" type="submit">
+                        Delete
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
 {% endblock %}

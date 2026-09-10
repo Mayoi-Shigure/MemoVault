@@ -15,10 +15,12 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
+    recent_notes = get_notes()[:5]
+
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={}
+        context={"recent_notes": recent_notes}
     )
 
 
@@ -65,12 +67,12 @@ def note_detail(request: Request, note_id: int):
             <html>
             <head>
                 <meta charset="UTF-8">
-                <title>Note Not Found</title>
+                <title>Record Not Found</title>
             </head>
             <body>
-                <h1>Note Not Found</h1>
-                <p>This note does not exist.</p>
-                <a href="/notes">Back to Notes</a>
+                <h1>Record Not Found</h1>
+                <p>This record does not exist.</p>
+                <a href="/notes">Back to Library</a>
             </body>
             </html>
             """,
@@ -89,7 +91,7 @@ def edit_note_page(request: Request, note_id: int):
 
     if not note:
         return HTMLResponse(
-            content="<h1>Note Not Found</h1>",
+            content="<h1>Record Not Found</h1>",
             status_code=404
         )
 
@@ -122,7 +124,7 @@ def remove_note(note_id: int):
 
     if not note:
         return HTMLResponse(
-            content="<h1>Note Not Found</h1>",
+            content="<h1>Record Not Found</h1>",
             status_code=404
         )
 

@@ -1,15 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}MemoVault Notes{% endblock %}
+{% block title %}Library - MemoVault{% endblock %}
 
 {% block content %}
-    <h1>MemoVault Notes</h1>
+    <section class="workspace-header library-header">
+        <div>
+            <h1>Library</h1>
+            <p>Search, add, and revisit saved records, links, ideas, and references.</p>
+        </div>
 
-    <form action="/notes" method="GET">
+        <button class="button" id="add-record" type="button" data-modal-open="add-record-modal">
+            Add Record
+        </button>
+    </section>
+
+    <form class="search-form library-search" action="/notes" method="GET">
         <input
             type="text"
             name="q"
-            placeholder="Search notes..."
+            placeholder="Search records..."
             value="{{ q }}"
         >
 
@@ -18,66 +27,106 @@
         </button>
     </form>
 
-    <h2>Add New Note</h2>
+    <section class="content-section">
+        <div class="section-heading">
+            <h2>All Records</h2>
+            {% if q %}
+                <p>Search results for "{{ q }}"</p>
+            {% endif %}
+        </div>
 
-    <form action="/notes" method="POST">
-        <p>
-            <input
-                type="text"
-                name="title"
-                placeholder="Title"
-                required
-            >
-        </p>
+        {% if notes %}
+            <div class="card-grid">
+                {% for note in notes %}
+                    <article class="record-card">
+                        <a class="card-title" href="/notes/{{ note.id }}">
+                            {{ note.title }}
+                        </a>
 
-        <p>
-            <textarea
-                name="content"
-                placeholder="Content"
-            ></textarea>
-        </p>
+                        <p class="card-summary">
+                            {{ (note.content or '')[:180] }}{% if note.content and note.content|length > 180 %}...{% endif %}
+                        </p>
 
-        <p>
-            <input
-                type="text"
-                name="url"
-                placeholder="URL (optional)"
-            >
-        </p>
+                        {% if note.url %}
+                            <p class="card-source">
+                                <a href="{{ note.url }}" target="_blank" rel="noopener noreferrer">
+                                    {{ note.url }}
+                                </a>
+                            </p>
+                        {% endif %}
 
-        <button type="submit">
-            Save Note
-        </button>
-    </form>
-
-    {% for note in notes %}
-        <hr>
-
-        <h2>
-            <a href="/notes/{{ note.id }}">
-                {{ note.title }}
-            </a>
-        </h2>
-
-        <p>{{ note.content }}</p>
-
-        <p>Created: {{ note.created_at }}</p>
-
-        {% if note.url %}
-            <p>
-                <a href="{{ note.url }}" target="_blank">
-                    Open Link
-                </a>
-            </p>
+                        <p class="card-meta">
+                            Updated {{ note.updated_at }}
+                        </p>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                {% if q %}
+                    <h2>No matching records</h2>
+                    <p>Try a different keyword or add a new record to your library.</p>
+                {% else %}
+                    <h2>No records yet</h2>
+                    <p>Add your first record, link, idea, article, or useful reference.</p>
+                {% endif %}
+            </div>
         {% endif %}
+    </section>
 
-    {% else %}
+    <div class="modal-backdrop" id="add-record-modal" aria-hidden="true">
+        <section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="add-record-title">
+            <header class="modal-header">
+                <div>
+                    <h2 id="add-record-title">Add Record</h2>
+                    <p>Capture a title, optional content, and source URL.</p>
+                </div>
 
-        <p>No notes found.</p>
+                <button class="icon-button" type="button" aria-label="Close dialog" data-modal-close>
+                    &times;
+                </button>
+            </header>
 
-    {% endfor %}
+            <form class="modal-form" action="/notes" method="POST">
+                <p>
+                    <label for="new-title">Title</label>
+                    <input
+                        id="new-title"
+                        type="text"
+                        name="title"
+                        placeholder="Title"
+                        required
+                    >
+                </p>
 
-    <hr>
+                <p>
+                    <label for="new-content">Content</label>
+                    <textarea
+                        id="new-content"
+                        name="content"
+                        placeholder="Content"
+                    ></textarea>
+                </p>
 
-    <a href="/">Back to Home</a>
+                <p>
+                    <label for="new-url">URL</label>
+                    <input
+                        id="new-url"
+                        type="text"
+                        name="url"
+                        placeholder="URL (optional)"
+                    >
+                </p>
+
+                <div class="modal-actions">
+                    <button class="button button-secondary" type="button" data-modal-close>
+                        Cancel
+                    </button>
+                    <button type="submit">
+                        Save Record
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
 {% endblock %}

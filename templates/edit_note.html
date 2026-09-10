@@ -1,42 +1,53 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Note{% endblock %}
+{% block title %}Edit Record{% endblock %}
 
 {% block content %}
-    <h1>Edit Note</h1>
+    <section class="editor-page">
+        <div class="back-link">
+            <a href="/notes/{{ note.id }}">Back to Record</a>
+        </div>
 
-    <form action="/notes/{{ note.id }}/edit" method="POST">
+        <header class="workspace-header">
+            <div>
+                <h1>Edit Record</h1>
+                <p>Update the saved title, content, or source URL.</p>
+            </div>
+        </header>
 
-        <p>
-            <input
-                type="text"
-                name="title"
-                value="{{ note.title }}"
-                required
-            >
-        </p>
+        <section class="form-panel">
+            <form action="/notes/{{ note.id }}/edit" method="POST">
+                <p>
+                    <input
+                        type="text"
+                        name="title"
+                        value="{{ note.title }}"
+                        required
+                    >
+                </p>
 
-        <p>
-            <textarea name="content">{{ note.content }}</textarea>
-        </p>
+                <p>
+                    <textarea name="content">{{ note.content }}</textarea>
+                </p>
 
-        <p>
-            <input
-                type="text"
-                name="url"
-                value="{{ note.url or '' }}"
-            >
-        </p>
+                <p>
+                    <input
+                        type="text"
+                        name="url"
+                        value="{{ note.url or '' }}"
+                    >
+                </p>
 
-        <button type="submit">
-            Save Changes
-        </button>
+                <div class="form-actions">
+                    <button type="submit">
+                        Save Changes
+                    </button>
 
-    </form>
-
-    <p>
-        <a href="/notes/{{ note.id }}">
-            Cancel
-        </a>
-    </p>
+                    <a class="button button-secondary" href="/notes/{{ note.id }}">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </section>
+    </section>
 {% endblock %}
