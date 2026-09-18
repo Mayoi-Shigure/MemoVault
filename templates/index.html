@@ -6,7 +6,7 @@
     <section class="workspace-header">
         <div>
             <h1>MemoVault</h1>
-            <p>Personal searchable digital memory vault.</p>
+            <p data-en="Personal searchable digital memory vault." data-zh="个人可搜索数字记忆库。">Personal searchable digital memory vault.</p>
         </div>
     </section>
 
@@ -16,20 +16,22 @@
                 type="text"
                 name="q"
                 placeholder="Search your library..."
+                data-placeholder-en="Search your library..."
+                data-placeholder-zh="搜索你的资料库..."
             >
-            <button type="submit">Search</button>
+            <button type="submit" data-en="Search" data-zh="搜索">Search</button>
         </form>
 
         <div class="action-row">
-            <a class="button" href="/notes#add-record">Add Record</a>
-            <a class="button button-secondary" href="/notes">View Library</a>
+            <a class="button" href="/notes#add-record" data-en="Add Record" data-zh="新增记录">Add Record</a>
+            <a class="button button-secondary" href="/notes" data-en="View Library" data-zh="查看资料库">View Library</a>
         </div>
     </section>
 
     <section class="content-section">
         <div class="section-heading">
-            <h2>Recently Updated</h2>
-            <a href="/notes">View all records</a>
+            <h2 data-en="Recently Updated" data-zh="最近更新">Recently Updated</h2>
+            <a href="/notes" data-en="View all records" data-zh="查看全部记录">View all records</a>
         </div>
 
         <div class="recent-list">
@@ -40,18 +42,25 @@
                             {{ note.title }}
                         </a>
 
+                        <div class="recent-type">
+                            {% include "_type_badge.html" %}
+                        </div>
+
                         <p class="item-summary">
                             {{ (note.content or '')[:130] }}{% if note.content and note.content|length > 130 %}...{% endif %}
                         </p>
                     </div>
 
-                    <time class="item-meta">Updated {{ note.updated_at }}</time>
+                    <time class="item-meta">
+                        <span data-en="Updated" data-zh="更新时间">Updated</span>
+                        {{ note.updated_at }}
+                    </time>
                 </article>
             {% else %}
                 <div class="empty-state">
-                    <h2>No records yet</h2>
-                    <p>Start by adding your first saved record, link, idea, or reference.</p>
-                    <a class="button" href="/notes#add-record">Add Record</a>
+                    <h2 data-en="No records yet" data-zh="还没有记录">No records yet</h2>
+                    <p data-en="Start by adding your first saved record, link, idea, or reference." data-zh="从添加第一条记录、链接、想法或参考资料开始。">Start by adding your first saved record, link, idea, or reference.</p>
+                    <a class="button" href="/notes#add-record" data-en="Add Record" data-zh="新增记录">Add Record</a>
                 </div>
             {% endfor %}
         </div>

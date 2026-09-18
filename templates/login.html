@@ -1,0 +1,32 @@
+{% extends "public_base.html" %}
+{% block title %}Log in | MemoVault{% endblock %}
+{% block content %}
+<section class="auth-page">
+    <header class="workspace-header">
+        <h1 data-en="Log in" data-zh="登录">Log in</h1>
+    </header>
+    <section class="form-panel">
+        {% if login_error %}
+        <p class="type-form-error" role="alert" data-en="{{ login_error[0] }}" data-zh="{{ login_error[1] }}">{{ login_error[0] }}</p>
+        {% endif %}
+        <form action="/login" method="POST" accept-charset="UTF-8">
+            {% include "_csrf_input.html" %}
+            <p>
+                <label for="login-identity" data-en="Username or email" data-zh="用户名或邮箱">Username or email</label>
+                <input id="login-identity" name="login" type="text" value="{{ login }}" autocomplete="username" required>
+            </p>
+            <p>
+                <label for="login-password" data-en="Password" data-zh="密码">Password</label>
+                <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+            </p>
+            <div class="form-actions">
+                <button type="submit" data-en="Log in" data-zh="登录">Log in</button>
+            </div>
+        </form>
+        <p class="auth-account-link">
+            <span data-en="Don't have an account?" data-zh="还没有账号？">Don't have an account?</span>
+            <a href="/register" data-en="Register" data-zh="注册">Register</a>
+        </p>
+    </section>
+</section>
+{% endblock %}

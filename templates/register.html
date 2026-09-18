@@ -1,0 +1,50 @@
+{% extends "public_base.html" %}
+{% block title %}Register | MemoVault{% endblock %}
+{% block content %}
+<section class="auth-page">
+    {% if registration_success %}
+    <section class="form-panel auth-success" aria-labelledby="registration-success-title">
+        <span class="auth-success-icon" aria-hidden="true">✓</span>
+        <h1 id="registration-success-title" data-en="Account created" data-zh="注册成功">Account created</h1>
+        <p data-en="Your account has been created. You can now sign in." data-zh="你的账户已经创建完成，现在可以登录了。">Your account has been created. You can now sign in.</p>
+        <a class="button" href="/login" data-en="Go to sign in" data-zh="前往登录">Go to sign in</a>
+    </section>
+    {% else %}
+    <header class="workspace-header">
+        <h1 data-en="Register" data-zh="注册">Register</h1>
+    </header>
+    <section class="form-panel">
+        {% if registration_error %}
+        <p class="type-form-error" role="alert" data-en="{{ registration_error[0] }}" data-zh="{{ registration_error[1] }}">{{ registration_error[0] }}</p>
+        {% endif %}
+        <form action="/register" method="POST" accept-charset="UTF-8">
+            {% include "_csrf_input.html" %}
+            <p>
+                <label for="register-username" data-en="Username" data-zh="用户名">Username</label>
+                <input id="register-username" name="username" type="text" value="{{ username }}" maxlength="50" autocomplete="username" required>
+            </p>
+            <p>
+                <label for="register-email" data-en="Email" data-zh="邮箱">Email</label>
+                <input id="register-email" name="email" type="email" value="{{ email }}" maxlength="255" autocomplete="email" required>
+            </p>
+            <p>
+                <label for="register-password" data-en="Password" data-zh="密码">Password</label>
+                <input id="register-password" name="password" type="password" minlength="8" autocomplete="new-password" aria-describedby="password-help" required>
+            </p>
+            <p id="password-help" data-en="Use at least 8 characters." data-zh="请使用至少 8 个字符。">Use at least 8 characters.</p>
+            <p>
+                <label for="register-confirm" data-en="Confirm password" data-zh="确认密码">Confirm password</label>
+                <input id="register-confirm" name="confirm_password" type="password" minlength="8" autocomplete="new-password" required>
+            </p>
+            <div class="form-actions">
+                <button type="submit" data-en="Register" data-zh="注册">Register</button>
+            </div>
+        </form>
+        <p class="auth-account-link">
+            <span data-en="Already have an account?" data-zh="已有账号？">Already have an account?</span>
+            <a href="/login" data-en="Log in" data-zh="登录">Log in</a>
+        </p>
+    </section>
+    {% endif %}
+</section>
+{% endblock %}

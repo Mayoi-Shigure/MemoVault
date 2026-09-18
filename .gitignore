@@ -4,6 +4,11 @@ __pycache__/
 
 # Environment variables / secrets
 .env
+.env.*
+!.env.example
+.venv/
+venv/
+.pytest_cache/
 
 # IDE / editor
 .vscode/
@@ -12,3 +17,8 @@ __pycache__/
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Local database backups
+/memovault_before_user_ownership.sql
+/memovault_before_*.sql
+/backups/

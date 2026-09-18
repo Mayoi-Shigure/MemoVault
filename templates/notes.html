@@ -5,11 +5,11 @@
 {% block content %}
     <section class="workspace-header library-header">
         <div>
-            <h1>Library</h1>
-            <p>Search, add, and revisit saved records, links, ideas, and references.</p>
+            <h1 data-en="Library" data-zh="资料库">Library</h1>
+            <p data-en="Search, add, and revisit saved records, links, ideas, and references." data-zh="搜索、添加和回看保存的记录、链接、想法与参考资料。">Search, add, and revisit saved records, links, ideas, and references.</p>
         </div>
 
-        <button class="button" id="add-record" type="button" data-modal-open="add-record-modal">
+        <button class="button" id="add-record" type="button" data-modal-open="add-record-modal" data-en="Add Record" data-zh="新增记录">
             Add Record
         </button>
     </section>
@@ -19,110 +19,187 @@
             type="text"
             name="q"
             placeholder="Search records..."
+            data-placeholder-en="Search records..."
+            data-placeholder-zh="搜索记录..."
             value="{{ q }}"
         >
 
-        <button type="submit">
+        <button type="submit" data-en="Search" data-zh="搜索">
             Search
         </button>
     </form>
 
     <section class="content-section">
         <div class="section-heading">
-            <h2>All Records</h2>
+            <h2 data-en="All Records" data-zh="全部记录">All Records</h2>
             {% if q %}
-                <p>Search results for "{{ q }}"</p>
+                <p>
+                    <span data-en="Search results for" data-zh="搜索结果：">Search results for</span>
+                    "{{ q }}"
+                </p>
             {% endif %}
         </div>
 
-        {% if notes %}
-            <div class="card-grid">
-                {% for note in notes %}
-                    <article class="record-card">
-                        <a class="card-title" href="/notes/{{ note.id }}">
-                            {{ note.title }}
-                        </a>
+        {% if invalid_type %}
 
-                        <p class="card-summary">
-                            {{ (note.content or '')[:180] }}{% if note.content and note.content|length > 180 %}...{% endif %}
-                        </p>
+        <div class="empty-state">
+            <h2 data-en="Invalid type" data-zh="类型参数无效">
+                Invalid type
+            </h2>
 
-                        {% if note.url %}
-                            <p class="card-source">
-                                <a href="{{ note.url }}" target="_blank" rel="noopener noreferrer">
-                                    {{ note.url }}
-                                </a>
-                            </p>
-                        {% endif %}
+            <p
+                data-en="The type parameter in the URL is invalid."
+                data-zh="URL 中的类型参数无效。"
+            >
+                The type parameter in the URL is invalid.
+            </p>
 
-                        <p class="card-meta">
-                            Updated {{ note.updated_at }}
-                        </p>
-                    </article>
-                {% endfor %}
+            <a href="/notes"
+            data-en="Back to Library"
+            data-zh="返回资料库">
+                Back to Library
+            </a>
+        </div>
+
+                {% elif type_not_found %}
+
+            <div class="empty-state">
+                <h2 data-en="Type not found" data-zh="类型不存在">
+                    Type not found
+                </h2>
+
+                <p
+                    data-en="The selected type does not exist."
+                    data-zh="你选择的类型不存在。"
+                >
+                    The selected type does not exist.
+                </p>
+
+                <a href="/notes"
+                data-en="Back to Library"
+                data-zh="返回资料库">
+                    Back to Library
+                </a>
             </div>
+
+        {% elif notes %}
+                <div class="card-grid">
+                    {% for note in notes %}
+                        <article class="record-card">
+                            <a class="card-title" href="/notes/{{ note.id }}">
+                                {{ note.title }}
+                            </a>
+
+                            <p class="card-type">
+                                {% include "_type_badge.html" %}
+                            </p>
+
+                            <p class="card-summary">
+                                {{ (note.content or '')[:180] }}{% if note.content and note.content|length > 180 %}...{% endif %}
+                            </p>
+
+                            {% if note.url %}
+                                <p class="card-source">
+                                    <a href="{{ note.url }}" target="_blank" rel="noopener noreferrer">
+                                        {{ note.url }}
+                                    </a>
+                                </p>
+                            {% endif %}
+
+                            <p class="card-meta">
+                                <span data-en="Updated" data-zh="更新时间">Updated</span>
+                                {{ note.updated_at }}
+                            </p>
+                        </article>
+                    {% endfor %}
+                </div>
         {% else %}
             <div class="empty-state">
                 {% if q %}
-                    <h2>No matching records</h2>
-                    <p>Try a different keyword or add a new record to your library.</p>
+                    <h2 data-en="No matching records" data-zh="没有匹配的记录">No matching records</h2>
+                    <p data-en="Try a different keyword or add a new record to your library." data-zh="可以换一个关键词，或向资料库添加新记录。">Try a different keyword or add a new record to your library.</p>
                 {% else %}
-                    <h2>No records yet</h2>
-                    <p>Add your first record, link, idea, article, or useful reference.</p>
+                    <h2 data-en="No records yet" data-zh="还没有记录">No records yet</h2>
+                    <p data-en="Add your first record, link, idea, article, or useful reference." data-zh="添加你的第一条记录、链接、想法、文章或有用资料。">Add your first record, link, idea, article, or useful reference.</p>
                 {% endif %}
             </div>
         {% endif %}
     </section>
 
-    <div class="modal-backdrop" id="add-record-modal" aria-hidden="true">
+    <div class="modal-backdrop" id="add-record-modal" aria-hidden="true"{% if record_error %} data-modal-auto-open{% endif %}>
         <section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="add-record-title">
             <header class="modal-header">
                 <div>
-                    <h2 id="add-record-title">Add Record</h2>
-                    <p>Capture a title, optional content, and source URL.</p>
+                    <h2 id="add-record-title" data-en="Add Record" data-zh="新增记录">Add Record</h2>
+                    <p data-en="Capture a title, optional content, and source URL." data-zh="保存标题、可选内容和来源链接。">Capture a title, optional content, and source URL.</p>
                 </div>
 
-                <button class="icon-button" type="button" aria-label="Close dialog" data-modal-close>
+                <button class="icon-button" type="button" aria-label="Close dialog" data-aria-label-en="Close dialog" data-aria-label-zh="关闭对话框" data-modal-close>
                     &times;
                 </button>
             </header>
 
             <form class="modal-form" action="/notes" method="POST">
+                {% include "_csrf_input.html" %}
+                <input type="hidden" name="return_to" value="{{ form_return_to|default(request.url.path ~ ('?' ~ request.url.query if request.url.query else '')) }}">
+                {% if record_error %}<p class="type-form-error" role="alert" data-en="{{ record_error[0] }}" data-zh="{{ record_error[1] }}">{{ record_error[0] }}</p>{% endif %}
                 <p>
-                    <label for="new-title">Title</label>
+                    <label for="new-title" data-en="Title" data-zh="标题">Title</label>
                     <input
                         id="new-title"
                         type="text"
                         name="title"
+                        value="{{ record_title|default('') }}"
                         placeholder="Title"
+                        data-placeholder-en="Title"
+                        data-placeholder-zh="标题"
                         required
                     >
                 </p>
-
                 <p>
-                    <label for="new-content">Content</label>
+                    <label for="new-type" data-en="Type" data-zh="类型">Type</label>
+
+                    <select id="new-type" name="type_id">
+                        <option value="" data-en="Ungrouped" data-zh="未分组">
+                            Ungrouped
+                        </option>
+
+                        {% for type in types %}
+                            <option value="{{ type.id }}"{% if type.id|string == record_type_id|default(selected_type) %} selected{% endif %}>
+                                {{ type.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </p>
+                <p>
+                    <label for="new-content" data-en="Content" data-zh="内容">Content</label>
                     <textarea
                         id="new-content"
                         name="content"
                         placeholder="Content"
-                    ></textarea>
+                        data-placeholder-en="Content"
+                        data-placeholder-zh="内容"
+                    >{{ record_content|default('') }}</textarea>
                 </p>
 
                 <p>
-                    <label for="new-url">URL</label>
+                    <label for="new-url" data-en="URL" data-zh="链接">URL</label>
                     <input
                         id="new-url"
                         type="text"
                         name="url"
+                        value="{{ record_url|default('') }}"
                         placeholder="URL (optional)"
+                        data-placeholder-en="URL (optional)"
+                        data-placeholder-zh="链接（可选）"
                     >
                 </p>
 
                 <div class="modal-actions">
-                    <button class="button button-secondary" type="button" data-modal-close>
+                    <button class="button button-secondary" type="button" data-modal-close data-en="Cancel" data-zh="取消">
                         Cancel
                     </button>
-                    <button type="submit">
+                    <button type="submit" data-en="Save Record" data-zh="保存记录">
                         Save Record
                     </button>
                 </div>

@@ -5,18 +5,19 @@
 {% block content %}
     <section class="editor-page">
         <div class="back-link">
-            <a href="/notes/{{ note.id }}">Back to Record</a>
+            <a href="/notes/{{ note.id }}" data-en="Back to Record" data-zh="返回记录">Back to Record</a>
         </div>
 
         <header class="workspace-header">
             <div>
-                <h1>Edit Record</h1>
-                <p>Update the saved title, content, or source URL.</p>
+                <h1 data-en="Edit Record" data-zh="编辑记录">Edit Record</h1>
+                <p data-en="Update the saved title, content, or source URL." data-zh="更新已保存的标题、内容或来源链接。">Update the saved title, content, or source URL.</p>
             </div>
         </header>
 
         <section class="form-panel">
             <form action="/notes/{{ note.id }}/edit" method="POST">
+                {% include "_csrf_input.html" %}
                 <p>
                     <input
                         type="text"
@@ -24,6 +25,28 @@
                         value="{{ note.title }}"
                         required
                     >
+                </p>
+
+                <p>
+                    <label for="edit-type" data-en="Type" data-zh="类型">Type</label>
+
+                    <select id="edit-type" name="type_id">
+                        <option value=""
+                            {% if note.type_id is none %}selected{% endif %}
+                            data-en="Ungrouped"
+                            data-zh="未分组">
+                            Ungrouped
+                        </option>
+
+                        {% for type in types %}
+                            <option
+                                value="{{ type.id }}"
+                                {% if note.type_id == type.id %}selected{% endif %}
+                            >
+                                {{ type.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
                 </p>
 
                 <p>
@@ -39,11 +62,11 @@
                 </p>
 
                 <div class="form-actions">
-                    <button type="submit">
+                    <button type="submit" data-en="Save Changes" data-zh="保存修改">
                         Save Changes
                     </button>
 
-                    <a class="button button-secondary" href="/notes/{{ note.id }}">
+                    <a class="button button-secondary" href="/notes/{{ note.id }}" data-en="Cancel" data-zh="取消">
                         Cancel
                     </a>
                 </div>

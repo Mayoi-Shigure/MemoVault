@@ -1,40 +1,234 @@
+{% set account_user = current_user|default(request.state.current_user|default(none), true) %}
+{% macro account_area(location) %}
+    {% if account_user %}
+    <div class="account-area">
+        <button class="account-trigger" id="account-trigger-{{ location }}" type="button" aria-expanded="false" aria-controls="account-menu-{{ location }}" aria-haspopup="menu">
+            <span class="account-avatar" aria-hidden="true">{{ (account_user.username|default('?'))[:1]|upper }}</span>
+            <span class="account-text">
+                <span class="account-caption" data-en="Signed in" data-zh="已登录">Signed in</span>
+                <span class="account-name" title="{{ account_user.username }}">{{ account_user.username }}</span>
+            </span>
+            <span class="account-more" aria-hidden="true">⋯</span>
+        </button>
+        <div class="account-menu" id="account-menu-{{ location }}" role="menu" aria-labelledby="account-trigger-{{ location }}" hidden>
+            <button type="button" role="menuitem" tabindex="-1" data-modal-open="logout-modal" aria-haspopup="dialog" aria-controls="logout-modal" data-en="Sign out" data-zh="退出登录">Sign out</button>
+        </div>
+    </div>
+    {% endif %}
+{% endmacro %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}MemoVault{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}?v=account-v1">
 </head>
-<body>
+<body{% if form_return_to %} data-form-return-to="{{ form_return_to }}"{% endif %}>
     <div class="app-shell">
         <aside class="sidebar">
             <a class="brand" href="/">
                 <span class="brand-mark">M</span>
                 <span>
                     <span class="brand-name">MemoVault</span>
-                    <span class="brand-subtitle">Digital memory vault</span>
+                    <span class="brand-subtitle" data-en="Digital memory vault" data-zh="数字记忆库">Digital memory vault</span>
                 </span>
             </a>
 
+            <div class="sidebar-main">
             <nav class="side-nav" aria-label="Primary navigation">
-                <a href="/">Home</a>
-                <a href="/notes">Library</a>
+                <a href="/" data-en="Home" data-zh="首页">Home</a>
+                <a href="/notes" data-en="Library" data-zh="资料库">Library</a>
             </nav>
+
+            <div class="sidebar-types">
+                <p class="sidebar-types-title" data-en="Types" data-zh="类型">Types</p>
+                <div class="sidebar-type-filters">
+                    <input id="sidebar-type-search" type="search" autocomplete="off" placeholder="Search types…" data-placeholder-en="Search types…" data-placeholder-zh="搜索类型…" aria-label="Search types" data-aria-label-en="Search types" data-aria-label-zh="搜索类型">
+                    <label class="sidebar-hide-empty"><input id="sidebar-hide-empty" type="checkbox"><span data-en="Hide empty types" data-zh="隐藏空类型">Hide empty types</span></label>
+                </div>
+                <button class="sidebar-new-type" type="button" data-modal-open="new-type-modal" data-en="+ New Type" data-zh="+ 新建类型">+ New Type</button>
+
+                {% for type in sidebar_types %}
+                    <div class="sidebar-type-row{% if type.id|string == selected_type %} is-active{% endif %}" data-type-name="{{ type.name }}" data-record-count="{{ type.record_count }}">
+                        <button
+                            class="sidebar-type-toggle"
+                            type="button"
+                            data-type-key="type-{{ type.id }}"
+                            aria-expanded="true"
+                            aria-label="Toggle {{ type.name }}"
+                        >
+                            ▾
+                        </button>
+                        <a class="sidebar-type-link" href="/notes?type={{ type.id }}">{{ type.name }}</a>
+                        <span class="sidebar-type-count">{{ type.record_count }}</span>
+                        {% if type.is_default == false %}
+                            <div class="sidebar-type-actions">
+                                <button class="sidebar-type-more" type="button" aria-expanded="false" aria-controls="type-menu-{{ type.id }}" aria-label="Type actions" data-aria-label-en="Type actions" data-aria-label-zh="类型操作">⋯</button>
+                                <div class="sidebar-type-menu" id="type-menu-{{ type.id }}" hidden>
+                            <button class="sidebar-type-rename" type="button" data-modal-open="rename-type-modal" data-rename-type-id="{{ type.id }}" data-rename-type-name="{{ type.name }}" data-en="Rename" data-zh="重命名">Rename</button>
+                            <button class="sidebar-type-delete" type="button" data-modal-open="delete-type-modal" data-delete-type-id="{{ type.id }}" data-delete-type-name="{{ type.name }}" data-en="Delete" data-zh="删除">Delete</button>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <ul class="sidebar-record-list">
+                        {% for record in sidebar_records %}
+                            {% if record.type_id == type.id %}
+                                <li>
+                                    <a class="sidebar-record-link{% if record.id == selected_record_id|default(none) %} is-current-record{% endif %}" href="/notes/{{ record.id }}" title="{{ record.title }}"{% if record.id == selected_record_id|default(none) %} aria-current="page"{% endif %}>{{ record.title }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+
+                <div class="sidebar-type-row sidebar-type-ungrouped{% if selected_type == 'ungrouped' %} is-active{% endif %}">
+                    <button
+                        class="sidebar-type-toggle"
+                        type="button"
+                        data-type-key="ungrouped"
+                        aria-expanded="true"
+                        aria-label="Toggle Ungrouped"
+                    >
+                        ▾
+                    </button>
+                    <a
+                        class="sidebar-type-link"
+                        href="/notes?type=ungrouped"
+                        data-en="Ungrouped"
+                        data-zh="未分组"
+                    >
+                        Ungrouped
+                    </a>
+                    <span class="sidebar-type-count">{{ ungrouped_count }}</span>
+                </div>
+
+                <ul class="sidebar-record-list">
+                    {% for record in sidebar_records %}
+                        {% if record.type_id is none %}
+                            <li>
+                                <a class="sidebar-record-link{% if record.id == selected_record_id|default(none) %} is-current-record{% endif %}" href="/notes/{{ record.id }}" title="{{ record.title }}"{% if record.id == selected_record_id|default(none) %} aria-current="page"{% endif %}>{{ record.title }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+
+            </div>
+
+            <div class="sidebar-footer">
+            {{ account_area('sidebar') }}
+            <div class="language-switcher" aria-label="Language switcher">
+                <button class="language-option is-active" type="button" data-language="en">EN</button>
+                <button class="language-option" type="button" data-language="zh">中文</button>
+            </div>
+            </div>
         </aside>
 
         <header class="mobile-header">
             <a class="mobile-brand" href="/">MemoVault</a>
             <nav class="mobile-nav" aria-label="Primary navigation">
-                <a href="/">Home</a>
-                <a href="/notes">Library</a>
+                <a href="/" data-en="Home" data-zh="首页">Home</a>
+                <a href="/notes" data-en="Library" data-zh="资料库">Library</a>
             </nav>
+            <div class="mobile-language-switcher" aria-label="Language switcher">
+                <button class="language-option is-active" type="button" data-language="en">EN</button>
+                <button class="language-option" type="button" data-language="zh">中文</button>
+            </div>
+            {{ account_area('mobile') }}
         </header>
 
         <main class="page-shell">
             {% block content %}{% endblock %}
         </main>
     </div>
-    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    {% if account_user %}
+    <div class="modal-backdrop" id="logout-modal" aria-hidden="true">
+        <section class="modal-dialog modal-dialog-small" role="dialog" aria-modal="true" aria-labelledby="logout-title" aria-describedby="logout-description">
+            <header class="modal-header">
+                <div>
+                    <h2 id="logout-title" data-en="Sign out" data-zh="退出登录">Sign out</h2>
+                    <p id="logout-description" data-en="Are you sure you want to sign out?" data-zh="确定要退出当前账户吗？">Are you sure you want to sign out?</p>
+                </div>
+            </header>
+            <form action="/logout" method="POST">
+                {% include "_csrf_input.html" %}
+                <div class="modal-actions">
+                    <button class="button-secondary" type="button" data-modal-close data-modal-initial-focus data-en="Cancel" data-zh="取消">Cancel</button>
+                    <button type="submit" data-en="Sign out" data-zh="退出登录">Sign out</button>
+                </div>
+            </form>
+        </section>
+    </div>
+    {% endif %}
+    <div class="modal-backdrop" id="new-type-modal" aria-hidden="true"{% if new_type_error %} data-modal-auto-open{% endif %}>
+        <section class="modal-dialog modal-dialog-small" role="dialog" aria-modal="true" aria-labelledby="new-type-title">
+            <header class="modal-header">
+                <h2 id="new-type-title" data-en="New Type" data-zh="新建类型">New Type</h2>
+                <button class="icon-button" type="button" aria-label="Close dialog" data-aria-label-en="Close dialog" data-aria-label-zh="关闭对话框" data-modal-close>&times;</button>
+            </header>
+            <form class="modal-form" action="/types" method="POST" accept-charset="UTF-8">
+                {% include "_csrf_input.html" %}
+                <input type="hidden" name="return_to" value="{{ form_return_to|default(request.url.path ~ ('?' ~ request.url.query if request.url.query else '')) }}">
+                <p>
+                    <label for="new-type-name" data-en="Type name" data-zh="类型名称">Type name</label>
+                    <input id="new-type-name" name="name" type="text" value="{{ new_type_name|default('') }}" required aria-describedby="new-type-help{% if new_type_error %} new-type-error{% endif %}"{% if new_type_error %} aria-invalid="true"{% endif %}>
+                </p>
+                <p id="new-type-help" data-en="Up to 50 characters." data-zh="最多 50 个字符。">Up to 50 characters.</p>
+                {% if new_type_error %}
+                    <p class="type-form-error" id="new-type-error" role="alert" data-en="{{ new_type_error[0] }}" data-zh="{{ new_type_error[1] }}">{{ new_type_error[0] }}</p>
+                {% endif %}
+                <div class="modal-actions">
+                    <button class="button-secondary" type="button" data-modal-close data-en="Cancel" data-zh="取消">Cancel</button>
+                    <button type="submit" data-en="Create" data-zh="创建">Create</button>
+                </div>
+            </form>
+        </section>
+    </div>
+    <div class="modal-backdrop" id="rename-type-modal" aria-hidden="true"{% if rename_type_error %} data-modal-auto-open{% endif %}>
+        <section class="modal-dialog modal-dialog-small" role="dialog" aria-modal="true" aria-labelledby="rename-type-title">
+            <header class="modal-header">
+                <h2 id="rename-type-title" data-en="Rename Type" data-zh="重命名类型">Rename Type</h2>
+                <button class="icon-button" type="button" aria-label="Close dialog" data-aria-label-en="Close dialog" data-aria-label-zh="关闭对话框" data-modal-close>&times;</button>
+            </header>
+            <p><span data-en="Current name:" data-zh="当前名称：">Current name:</span> <span id="rename-current-name">{{ rename_current_name|default('') }}</span></p>
+            <form id="rename-type-form" class="modal-form" action="/types/{{ rename_type_id|default(0) }}/rename" method="POST" accept-charset="UTF-8">
+                {% include "_csrf_input.html" %}
+                <input type="hidden" name="return_to" value="{{ form_return_to|default(request.url.path ~ ('?' ~ request.url.query if request.url.query else '')) }}">
+                <p>
+                    <label for="rename-type-name" data-en="Type name" data-zh="类型名称">Type name</label>
+                    <input id="rename-type-name" name="name" type="text" value="{{ rename_type_name|default('') }}" required aria-describedby="rename-type-help rename-type-error"{% if rename_type_error %} aria-invalid="true"{% endif %}>
+                </p>
+                <p id="rename-type-help" data-en="Up to 50 characters." data-zh="最多 50 个字符。">Up to 50 characters.</p>
+                <p class="type-form-error" id="rename-type-error" role="alert"{% if rename_type_error %} data-en="{{ rename_type_error[0] }}" data-zh="{{ rename_type_error[1] }}"{% else %} hidden{% endif %}>{{ rename_type_error[0] if rename_type_error else '' }}</p>
+                <div class="modal-actions">
+                    <button class="button-secondary" type="button" data-modal-close data-en="Cancel" data-zh="取消">Cancel</button>
+                    <button type="submit" data-en="Save" data-zh="保存">Save</button>
+                </div>
+            </form>
+        </section>
+    </div>
+    <div class="modal-backdrop" id="delete-type-modal" aria-hidden="true"{% if delete_type_error %} data-modal-auto-open{% endif %}>
+        <section class="modal-dialog modal-dialog-small" role="dialog" aria-modal="true" aria-labelledby="delete-type-title" aria-describedby="delete-type-warning">
+            <header class="modal-header">
+                <h2 id="delete-type-title" data-en="Delete Type?" data-zh="删除类型？">Delete Type?</h2>
+                <button class="icon-button" type="button" aria-label="Close dialog" data-aria-label-en="Close dialog" data-aria-label-zh="关闭对话框" data-modal-close>&times;</button>
+            </header>
+            <p id="delete-current-name">{{ delete_type_name|default('') }}</p>
+            <p id="delete-type-warning" data-en="This action cannot be undone." data-zh="此操作无法撤销。">This action cannot be undone.</p>
+            <p class="type-form-error" id="delete-type-error" role="alert"{% if delete_type_error %} data-en="{{ delete_type_error[0] }}" data-zh="{{ delete_type_error[1] }}"{% else %} hidden{% endif %}>{{ delete_type_error[0] if delete_type_error else '' }}</p>
+            <form id="delete-type-form" action="/types/{{ delete_type_id|default(0) }}/delete" method="POST">
+                {% include "_csrf_input.html" %}
+                <input type="hidden" name="return_to" value="{{ form_return_to|default(request.url.path ~ ('?' ~ request.url.query if request.url.query else '')) }}">
+                <div class="modal-actions">
+                    <button class="button-secondary" type="button" data-modal-close data-en="Cancel" data-zh="取消">Cancel</button>
+                    <button class="button-danger" type="submit" data-en="Delete" data-zh="删除">Delete</button>
+                </div>
+            </form>
+        </section>
+    </div>
+    <script src="{{ url_for('static', path='/js/main.js') }}?v=logout-confirm-v1"></script>
 </body>
 </html>
