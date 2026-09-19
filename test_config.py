@@ -21,7 +21,8 @@ class ConfigTests(unittest.TestCase):
         for name in ('config.py', 'main.py', 'database.py', 'security.py'):
             shutil.copyfile(Path(__file__).resolve().parent / name, self.root / name)
         self.env = dict(os.environ)
-        for key in ('DB_PASSWORD', 'SESSION_SECRET', 'PYTHONPATH', 'PYTHON_DOTENV_DISABLED'):
+        for key in ('APP_ENV', 'DB_HOST', 'DB_PORT', 'DB_USER', 'DB_NAME',
+                    'DB_PASSWORD', 'SESSION_SECRET', 'PYTHONPATH', 'PYTHON_DOTENV_DISABLED'):
             self.env.pop(key, None)
         self.env['DB_PASSWORD'] = secrets.token_urlsafe(32)
         self.env['SESSION_SECRET'] = secrets.token_urlsafe(48)
@@ -113,3 +114,91 @@ class ConfigTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('DB_PASSWORD must be set', result.stderr)
         self.assertNotIn('Real MySQL is forbidden', result.stderr)
+
+    def test_development_defaults_and_database_arguments(self):
+        result = self.run_code('''import config, database
+assert config.APP_ENV == "development"
+assert config.SESSION_HTTPS_ONLY is False
+with patch("mysql.connector.connect") as connect:
+    database.get_db_connection()
+    connect.assert_called_once_with(host="localhost", port=3306, user="root",
+        password=config.DB_PASSWORD, database="memovault")
+''')
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_all_database_settings_from_dotenv_and_external_overrides(self):
+        settings = dict(APP_ENV='production', DB_HOST='db.example.invalid',
+                        DB_PORT='3307', DB_USER='memovault_app', DB_NAME='vault')
+        self.write_dotenv()
+        with (self.root / '.env').open('a', encoding='utf-8') as stream:
+            stream.write(''.join(f'{key}={value}\n' for key, value in settings.items()))
+        for external in (False, True):
+            with self.subTest(external=external):
+                if external:
+                    settings = dict(APP_ENV='development', DB_HOST='external.example.invalid',
+                                    DB_PORT='3308', DB_USER='external_app', DB_NAME='external_vault')
+                    self.env.update(settings)
+                result = self.run_code(f'''import config, database
+assert config.APP_ENV == {settings['APP_ENV']!r}
+assert config.SESSION_HTTPS_ONLY == {settings['APP_ENV'] == 'production'!r}
+with patch("mysql.connector.connect") as connect:
+    database.get_db_connection()
+    connect.assert_called_once_with(host={settings['DB_HOST']!r}, port={int(settings['DB_PORT'])},
+        user={settings['DB_USER']!r}, password=config.DB_PASSWORD, database={settings['DB_NAME']!r})
+''')
+                self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_session_cookie_secure_matches_environment(self):
+        for environment in ('development', 'production'):
+            with self.subTest(environment=environment):
+                self.env['APP_ENV'] = environment
+                result = self.run_code(f'''import main
+from fastapi.testclient import TestClient
+# Replace rendering only; exercise the application's actual SessionMiddleware.
+from starlette.responses import PlainTextResponse
+def render(request):
+    request.session["fixture"] = True
+    return PlainTextResponse("fixture")
+main.render_login = render
+with TestClient(main.app, base_url="https://testserver") as client:
+    response = client.get("/login")
+    assert response.status_code == 200
+    flags = {{part.strip().lower() for part in response.headers["set-cookie"].split(";")}}
+    assert ("secure" in flags) == {environment == 'production'!r}
+    assert "httponly" in flags
+    assert "samesite=lax" in flags
+''')
+                self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_invalid_environment_and_database_settings_fail_fast(self):
+        for key, values in {
+            'APP_ENV': ('', 'prod', 'Production', ' '),
+            'DB_PORT': ('', 'abc', '3306.5', '0', '-1', '65536'),
+            'DB_HOST': ('', ' '), 'DB_USER': ('', ' '), 'DB_NAME': ('', ' '),
+        }.items():
+            for value in values:
+                with self.subTest(key=key, value=value):
+                    self.env[key] = value
+                    result = self.run_code('import config')
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn(f'{key} must be', result.stderr)
+            self.env.pop(key)
+
+    def test_offline_helper_ignores_dotenv_and_host_configuration(self):
+        shutil.copyfile(Path(__file__).resolve().parent / 'offline_test_support.py',
+                        self.root / 'offline_test_support.py')
+        (self.root / '.env').write_text('APP_ENV=invalid\nDB_PORT=invalid\n', encoding='utf-8')
+        self.env.update(APP_ENV='production', DB_PORT='invalid')
+        result = self.run_code('''with patch("dotenv.main.DotEnv", side_effect=AssertionError("dotenv file access forbidden")):
+    import offline_test_support
+import config
+assert config.APP_ENV == "development"
+assert config.DB_PORT == 3306
+try:
+    offline_test_support.database.get_db_connection()
+except AssertionError as error:
+    assert "Real MySQL is forbidden" in str(error)
+else:
+    raise AssertionError("MySQL guard was bypassed")
+''')
+        self.assertEqual(result.returncode, 0, result.stderr)

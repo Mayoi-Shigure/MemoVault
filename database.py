@@ -1,4 +1,4 @@
-from config import require_environment
+import config
 from contextlib import contextmanager
 import mysql.connector
 
@@ -6,8 +6,8 @@ DEFAULT_TYPES = ("Note", "Website", "Article", "Video", "Tool", "Project")
 
 
 def get_db_connection():
-    return mysql.connector.connect(host="localhost", user="root",
-        password=require_environment("DB_PASSWORD"), database="memovault")
+    return mysql.connector.connect(host=config.DB_HOST, port=config.DB_PORT,
+        user=config.DB_USER, password=config.DB_PASSWORD, database=config.DB_NAME)
 
 
 @contextmanager

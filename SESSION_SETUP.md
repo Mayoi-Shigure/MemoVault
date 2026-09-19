@@ -9,7 +9,7 @@ python -m venv .venv
 
 `requirements.txt` is the single supported installation entry point and pins the
 runtime and TestClient versions. Tests use standard-library unittest; pytest is
-not required. This document covers development configuration and security behavior.
+not required. This document covers development/production configuration and security behavior.
 
 ## Local configuration
 
@@ -20,9 +20,14 @@ have been created for you):
 if (-not (Test-Path -LiteralPath .env)) { Copy-Item -LiteralPath .env.example -Destination .env }
 ```
 
-Edit `.env` locally and fill both fields:
+Edit `.env` locally and fill both secret fields; the other settings retain local defaults:
 
 ```dotenv
+APP_ENV=development
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_NAME=memovault
 DB_PASSWORD=
 SESSION_SECRET=
 ```
@@ -103,6 +108,19 @@ The discovery suite contains only automated tests and their helpers. Test identi
 and passwords are synthetic fixtures, not application defaults. SQLite and mocks
 do not validate MySQL DDL, timestamp conversion, locking, or collation semantics.
 
-For production HTTPS, enable secure cookies (`https_only=True`) and use a dedicated
-database account with appropriate permissions. The checked-in application defaults
-remain intended for local development.
+## Production configuration
+
+On Ubuntu 24.04, set `APP_ENV=production`, configure `DB_HOST`, `DB_PORT`,
+`DB_USER`, `DB_PASSWORD`, `DB_NAME`, and supply a strong `SESSION_SECRET` through
+service environment variables or the project `.env`. Create a dedicated MySQL
+account with appropriate permissions and set `DB_USER` to that account; production
+must not use the local `root` default. No database accounts or schemas are changed
+by configuration loading.
+
+`APP_ENV=production` automatically sets `https_only=True`; browsers receive the
+Secure session cookie over HTTPS. Terminate HTTPS at Nginx and proxy to Uvicorn.
+Start Uvicorn from the project directory, without development `--reload`.
+`APP_ENV` accepts exactly `development` or `production`; other values fail startup.
+`DB_PORT` must be an integer from 1 to 65535. Explicitly blank `DB_HOST`, `DB_USER`,
+or `DB_NAME` also fails startup. Configuration is loaded once; restart the service
+after changes. Existing Windows HTTP development commands remain unchanged.

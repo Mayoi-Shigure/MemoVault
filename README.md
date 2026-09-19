@@ -58,7 +58,7 @@ FastAPI handlers obtain user-scoped data through `database.py` and pass it to Ji
 - **CSRF:** All state-changing POST forms, including registration, login, and logout, require a session-bound token. Tokens use `secrets.token_urlsafe(32)` and are validated with format checks and `secrets.compare_digest`. Invalid CSRF returns 403 after authentication checks; anonymous requests to protected pages redirect to login.
 - **Database constraints:** Ownership foreign keys link Records and Types to users. `UNIQUE(user_id, name)` limits Type names within each account. The composite foreign key `(user_id, type_id)` prevents a Record from referencing another user's Type. Database queries use bound parameters.
 
-Local development currently uses non-Secure cookies (`https_only=False`) because it runs over HTTP. Production deployment must enable Secure cookies (`https_only=True`) under HTTPS. These controls are not a guarantee of complete security. See [SESSION_SETUP.md](SESSION_SETUP.md) for configuration and session details.
+Local development currently uses non-Secure cookies (`https_only=False`) because it runs over HTTP. `APP_ENV=production` automatically enables Secure cookies (`https_only=True`) for HTTPS deployment. These controls are not a guarantee of complete security. See [SESSION_SETUP.md](SESSION_SETUP.md) for configuration and session details.
 
 ## Database Design
 
@@ -153,7 +153,7 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 Keep the secret private and stable across restarts. Changing it invalidates existing signed sessions. Both values must be non-empty. Existing environment variables take precedence over `.env`.
 
-The database host, user, and name are currently hardcoded in `database.py` as **localhost / root / memovault**. `DB_HOST`, `DB_USER`, and `DB_NAME` are not environment settings. A dedicated database account and configurable connection settings remain deployment work.
+`config.py` reads `DB_HOST`, `DB_PORT`, `DB_USER`, and `DB_NAME`, defaulting to **localhost / 3306 / root / memovault**. `APP_ENV` defaults to `development`; set it to `production` on the HTTPS server and set `DB_USER` to your dedicated MySQL account. `DB_PASSWORD` and `SESSION_SECRET` have no defaults. Invalid environment names, invalid ports, and blank connection settings stop startup. Restart after configuration changes.
 
 ### 3. Initialize a fresh database
 
@@ -229,7 +229,7 @@ MemoVault/
 
 ## Current Limitations and Roadmap
 
-- Production deployment is not completed. Planned work includes Ubuntu, systemd, Nginx, HTTPS, Secure cookies, and a dedicated database user with configurable connection settings.
+- Production deployment is not completed. Remaining server setup includes Ubuntu, systemd, Nginx, HTTPS, and creating a dedicated database user. Environment-based database settings and production Secure cookies are supported.
 - The `email_verified` field exists, but there is no email verification workflow or verification requirement for login. Password reset is not implemented.
 - UI/UX polish and screenshots are pending. On narrow screens the sidebar is hidden; its Type management controls do not yet have a mobile replacement.
 - Search matches titles and content using SQL `LIKE`; there is no pagination.
@@ -238,7 +238,7 @@ Planned deployment: Browser → HTTPS/Nginx → Uvicorn/FastAPI → MySQL. This 
 
 ## Privacy and Repository Safety
 
-`.env` is ignored by Git; `.env.example` contains only empty settings and comments, with no secrets. Never commit populated environment files, database backups, or private account data. Keep backups outside the repository or in the ignored `backups/` directory, and inspect the files selected for commit before publishing.
+`.env` is ignored by Git; `.env.example` contains safe development defaults, empty secret fields and comments, with no secrets. Never commit populated environment files, database backups, or private account data. Keep backups outside the repository or in the ignored `backups/` directory, and inspect the files selected for commit before publishing.
 
 ## License
 

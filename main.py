@@ -6,7 +6,7 @@ from mysql.connector import Error as DatabaseError
 from urllib.parse import urlsplit, parse_qs
 import re
 import os
-from config import require_environment
+from config import SESSION_SECRET, SESSION_HTTPS_ONLY
 from starlette.middleware.sessions import SessionMiddleware
 from security import hash_password, verify_password, get_csrf_token, verify_csrf_token
 from argon2.exceptions import HashingError, VerificationError, InvalidHashError
@@ -37,8 +37,7 @@ from database import (
 )
 
 
-session_secret = require_environment("SESSION_SECRET")
-require_environment("DB_PASSWORD")
+session_secret = SESSION_SECRET
 
 def require_application_login(request: Request):
     # Run before endpoint parameter validation, including malformed resource IDs.
@@ -68,7 +67,7 @@ app.add_middleware(
     same_site="lax",
     max_age=None,  # Browser-session cookie; no Remember Me option.
     # SessionMiddleware always sets HttpOnly; it has no httponly argument.
-    https_only=False,  # Set https_only=True for production HTTPS deployment.
+    https_only=SESSION_HTTPS_ONLY,
 )
 
 # Verify a dummy hash for unknown accounts to avoid a cheap account-existence probe.
