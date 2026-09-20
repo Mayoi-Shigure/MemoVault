@@ -8,9 +8,11 @@ Save notes, websites, articles, videos, tools, and projects as **Records**, each
 
 MemoVault is a personal learning and practice project with a server-rendered web interface.
 
+The first production deployment is complete: [Open MemoVault](https://memo.nemubox.com).
+
 ## Screenshot
 
-TODO: Add Dashboard and Library screenshots after deployment and final UI polish. Use demonstration content without personal data.
+TODO: Add Dashboard and Library screenshots using demonstration content without personal data.
 
 ## Features
 
@@ -44,11 +46,33 @@ flowchart LR
     App --> Guards[Authentication / Session / CSRF / Authorization]
     Guards --> Data[database.py]
     Data --> DB[(MySQL)]
-    Data --> Views[Jinja2 templates]
+    Data -->|User-scoped results| App
+    App --> Views[Jinja2 templates]
     Views -->|HTML response| Browser
 ```
 
-FastAPI handlers obtain user-scoped data through `database.py` and pass it to Jinja2 for rendering. CSS and JavaScript are served from `static/`. Local development runs directly on Uvicorn over HTTP; Nginx is not part of the current setup.
+FastAPI handlers obtain user-scoped data through `database.py` and pass it to Jinja2 for rendering. CSS and JavaScript are served from `static/`. Local development runs directly on Uvicorn over HTTP.
+
+## Production Deployment / Architecture
+
+The live service runs on one DigitalOcean Droplet with Ubuntu 24.04 LTS:
+
+```mermaid
+flowchart LR
+    Browser[Browser] -->|HTTPS| Nginx["Nginx :443"]
+    Nginx --> Uvicorn["Uvicorn 127.0.0.1:8000"]
+    Uvicorn --> FastAPI[FastAPI]
+    FastAPI --> MySQL[("MySQL 8 / 127.0.0.1:3306")]
+```
+
+- Nginx terminates HTTPS using Let's Encrypt / Certbot; HTTP redirects to HTTPS.
+- systemd manages MemoVault/Uvicorn, running as the `deploy` Linux user.
+- MySQL uses the `memovault` database and dedicated `memovault_app` account. Its port is bound to localhost and is not exposed publicly.
+- UFW allows only SSH, HTTP and HTTPS. SSH uses public-key authentication; password authentication and root SSH login are disabled.
+- Production uses `APP_ENV=production`, environment-based database credentials and `SESSION_SECRET`, and Secure session cookies. Populated `.env` files stay outside Git.
+- Daily `mysqldump` backups run through `~/scripts/backup_memovault.sh`. The server uses UTC: 19:00 UTC corresponds to 03:00 Beijing time the next day. Recent backups are retained on the server. A restore test succeeded, and one backup was copied to the development computer using SCP; automated off-server/cloud backups remain pending.
+
+See [Deployment and operations](docs/deployment.md) for a reproducible setup and backup/restore procedure. Deployment and restore status above is operator-reported; repository tests do not verify the live server configuration.
 
 ## Security Design
 
@@ -223,18 +247,18 @@ MemoVault/
 ├── offline_test_support.py
 ├── csrf_test_support.py
 ├── requirements.txt
+├── docs/deployment.md         # Production setup and backup/restore procedures
 ├── .env.example
 └── SESSION_SETUP.md
 ```
 
 ## Current Limitations and Roadmap
 
-- Production deployment is not completed. Remaining server setup includes Ubuntu, systemd, Nginx, HTTPS, and creating a dedicated database user. Environment-based database settings and production Secure cookies are supported.
+- This is a personal project with a single-server deployment; there is no redundant production instance or database failover.
 - The `email_verified` field exists, but there is no email verification workflow or verification requirement for login. Password reset is not implemented.
+- Automated off-server/cloud database backups are not implemented. Daily local backups and a manually transferred off-server copy are in place.
 - UI/UX polish and screenshots are pending. On narrow screens the sidebar is hidden; its Type management controls do not yet have a mobile replacement.
 - Search matches titles and content using SQL `LIKE`; there is no pagination.
-
-Planned deployment: Browser → HTTPS/Nginx → Uvicorn/FastAPI → MySQL. This is a deployment target, not the current architecture.
 
 ## Privacy and Repository Safety
 

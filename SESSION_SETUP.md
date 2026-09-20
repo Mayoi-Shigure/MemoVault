@@ -1,4 +1,4 @@
-# MemoVault development configuration and session security
+# MemoVault configuration and session security
 
 Use PowerShell in the project directory. A virtual environment is recommended:
 
@@ -109,6 +109,11 @@ and passwords are synthetic fixtures, not application defaults. SQLite and mocks
 do not validate MySQL DDL, timestamp conversion, locking, or collation semantics.
 
 ## Production configuration
+
+MemoVault is deployed at [https://memo.nemubox.com](https://memo.nemubox.com).
+See [Deployment and operations](docs/deployment.md) for Ubuntu, systemd, Nginx,
+HTTPS, SSH/firewall and backup/restore setup. This document describes the application's
+configuration and session behavior.
 
 On Ubuntu 24.04, set `APP_ENV=production`, configure `DB_HOST`, `DB_PORT`,
 `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and supply a strong `SESSION_SECRET` through

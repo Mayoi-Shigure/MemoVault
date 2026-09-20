@@ -22,3 +22,29 @@ Thumbs.db
 /memovault_before_user_ownership.sql
 /memovault_before_*.sql
 /backups/
+backup/
+backups/
+*.dump
+*.sql.gz
+*.sql.bz2
+*.sql.xz
+*.sql.zip
+# Ignore arbitrary SQL exports while keeping versioned schema/migrations available.
+*.sql
+!/database/schema.sql
+!/database/migrations/*.sql
+*.sql.partial
+
+# Local credentials and runtime/editor artifacts
+*.pem
+*.key
+*.pub
+id_rsa*
+id_ed25519*
+.my.cnf
+.mylogin.cnf
+*.log
+*.swp
+*.swo
+.mypy_cache/
+.ruff_cache/
