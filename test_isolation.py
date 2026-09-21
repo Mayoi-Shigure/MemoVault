@@ -323,7 +323,7 @@ class IsolationTests(IsolationFixture):
         # Use the actual authentication dependency with an empty cookie jar.
         self.identity_patch.stop()
         self.identity.return_value = None
-        for method, path in [('GET','/'),('GET','/notes'),('GET',f'/notes/{self.na}'),
+        for method, path in [('GET','/notes'),('GET',f'/notes/{self.na}'),
              ('GET',f'/notes/{self.na}/edit'),('POST','/notes'),('POST',f'/notes/{self.na}/edit'),
              ('POST',f'/notes/{self.na}/delete'),('POST','/types'),('POST',f'/types/{custom}/rename'),('POST',f'/types/{custom}/delete')]:
             response = self.client.request(method, path, data={'title':'x', 'content':'changed',
@@ -335,6 +335,6 @@ class IsolationTests(IsolationFixture):
         for path in ['/notes/not-an-int/edit', '/notes/1/edit']:
             response = self.client.post(path, data={}, follow_redirects=False)
             self.assertEqual(response.status_code, 303)
-        for path in ['/login','/register']: self.assertEqual(self.client.get(path).status_code,200)
+        for path in ['/','/login','/register']: self.assertEqual(self.client.get(path).status_code,200)
 
 if __name__ == '__main__': unittest.main()

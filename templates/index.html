@@ -1,19 +1,22 @@
 {% extends "base.html" %}
+{% from "_datetime.html" import timestamp %}
 
 {% block title %}MemoVault{% endblock %}
 
 {% block content %}
     <section class="workspace-header">
         <div>
-            <h1>MemoVault</h1>
-            <p data-en="Personal searchable digital memory vault." data-zh="个人可搜索数字记忆库。">Personal searchable digital memory vault.</p>
+            <p class="eyebrow">MemoVault</p>
+            <h1 data-en="Your web memory" data-zh="你的互联网记忆库">Your web memory</h1>
+            <p data-en="Pick up where you left off, or save something worth keeping." data-zh="回看最近收藏，或保存新的有用信息。">Pick up where you left off, or save something worth keeping.</p>
         </div>
     </section>
 
     <section class="dashboard-panel">
         <form class="search-form" action="/notes" method="GET">
             <input
-                type="text"
+                type="search"
+                aria-label="Search titles and content" data-aria-label-en="Search titles and content" data-aria-label-zh="搜索标题和内容"
                 name="q"
                 placeholder="Search your library..."
                 data-placeholder-en="Search your library..."
@@ -38,7 +41,7 @@
             {% for note in recent_notes %}
                 <article class="recent-item">
                     <div class="recent-content">
-                        <a class="item-title" href="/notes/{{ note.id }}">
+                        <a class="item-title" title="{{ note.title }}" href="/notes/{{ note.id }}">
                             {{ note.title }}
                         </a>
 
@@ -51,10 +54,7 @@
                         </p>
                     </div>
 
-                    <time class="item-meta">
-                        <span data-en="Updated" data-zh="更新时间">Updated</span>
-                        {{ note.updated_at }}
-                    </time>
+                    <div class="item-meta">{{ timestamp(note.updated_at) }}</div>
                 </article>
             {% else %}
                 <div class="empty-state">

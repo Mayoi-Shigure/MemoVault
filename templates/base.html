@@ -22,21 +22,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}MemoVault{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}?v=account-v1">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}?v=polish-v2">
 </head>
 <body{% if form_return_to %} data-form-return-to="{{ form_return_to }}"{% endif %}>
     <div class="app-shell">
-        <aside class="sidebar">
+        <aside class="sidebar" id="app-sidebar">
             <a class="brand" href="/">
                 <span class="brand-mark">M</span>
                 <span>
                     <span class="brand-name">MemoVault</span>
-                    <span class="brand-subtitle" data-en="Digital memory vault" data-zh="数字记忆库">Digital memory vault</span>
+                    <span class="brand-subtitle" data-en="Personal Web Memory" data-zh="个人互联网记忆库">Personal Web Memory</span>
                 </span>
             </a>
 
             <div class="sidebar-main">
-            <nav class="side-nav" aria-label="Primary navigation">
+            <nav class="side-nav" aria-label="Primary navigation" data-aria-label-en="Primary navigation" data-aria-label-zh="主导航">
                 <a href="/" data-en="Home" data-zh="首页">Home</a>
                 <a href="/notes" data-en="Library" data-zh="资料库">Library</a>
             </nav>
@@ -56,11 +56,11 @@
                             type="button"
                             data-type-key="type-{{ type.id }}"
                             aria-expanded="true"
-                            aria-label="Toggle {{ type.name }}"
+                            aria-label="Toggle {{ type.name }}" data-aria-label-en="Toggle {{ type.name }}" data-aria-label-zh="展开或折叠 {{ type.name }}"
                         >
                             ▾
                         </button>
-                        <a class="sidebar-type-link" href="/notes?type={{ type.id }}">{{ type.name }}</a>
+                        <a class="sidebar-type-link" title="{{ type.name }}" href="/notes?type={{ type.id }}">{{ type.name }}</a>
                         <span class="sidebar-type-count">{{ type.record_count }}</span>
                         {% if type.is_default == false %}
                             <div class="sidebar-type-actions">
@@ -90,7 +90,7 @@
                         type="button"
                         data-type-key="ungrouped"
                         aria-expanded="true"
-                        aria-label="Toggle Ungrouped"
+                        aria-label="Toggle Ungrouped" data-aria-label-en="Toggle Ungrouped" data-aria-label-zh="展开或折叠未分组"
                     >
                         ▾
                     </button>
@@ -120,7 +120,7 @@
 
             <div class="sidebar-footer">
             {{ account_area('sidebar') }}
-            <div class="language-switcher" aria-label="Language switcher">
+            <div class="language-switcher" aria-label="Language switcher" data-aria-label-en="Language switcher" data-aria-label-zh="语言切换">
                 <button class="language-option is-active" type="button" data-language="en">EN</button>
                 <button class="language-option" type="button" data-language="zh">中文</button>
             </div>
@@ -129,11 +129,12 @@
 
         <header class="mobile-header">
             <a class="mobile-brand" href="/">MemoVault</a>
-            <nav class="mobile-nav" aria-label="Primary navigation">
+            <button class="button-secondary mobile-types-toggle" type="button" aria-controls="app-sidebar" aria-expanded="false" hidden data-en="Types" data-zh="类型">Types</button>
+            <nav class="mobile-nav" aria-label="Primary navigation" data-aria-label-en="Primary navigation" data-aria-label-zh="主导航">
                 <a href="/" data-en="Home" data-zh="首页">Home</a>
                 <a href="/notes" data-en="Library" data-zh="资料库">Library</a>
             </nav>
-            <div class="mobile-language-switcher" aria-label="Language switcher">
+            <div class="mobile-language-switcher" aria-label="Language switcher" data-aria-label-en="Language switcher" data-aria-label-zh="语言切换">
                 <button class="language-option is-active" type="button" data-language="en">EN</button>
                 <button class="language-option" type="button" data-language="zh">中文</button>
             </div>
@@ -223,12 +224,13 @@
                 {% include "_csrf_input.html" %}
                 <input type="hidden" name="return_to" value="{{ form_return_to|default(request.url.path ~ ('?' ~ request.url.query if request.url.query else '')) }}">
                 <div class="modal-actions">
-                    <button class="button-secondary" type="button" data-modal-close data-en="Cancel" data-zh="取消">Cancel</button>
+                    <button class="button-secondary" type="button" data-modal-close data-modal-initial-focus data-en="Cancel" data-zh="取消">Cancel</button>
                     <button class="button-danger" type="submit" data-en="Delete" data-zh="删除">Delete</button>
                 </div>
             </form>
         </section>
     </div>
-    <script src="{{ url_for('static', path='/js/main.js') }}?v=logout-confirm-v1"></script>
+    {% include "_toast.html" %}
+    <script src="{{ url_for('static', path='/js/main.js') }}?v=polish-v2"></script>
 </body>
 </html>

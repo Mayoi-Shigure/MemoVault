@@ -142,8 +142,8 @@ class SessionTests(unittest.TestCase):
             dashboard = self.client.get("/", follow_redirects=False)
             lookup.assert_not_called()
         self.assertNotIn("Signed in as", dashboard.text)
-        self.assertEqual(dashboard.status_code, 303)
-        self.assertEqual(dashboard.headers["location"], "/login")
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertIn("Save anything useful.", dashboard.text)
         self.assertEqual(self.client.get("/notes", follow_redirects=False).status_code, 303)
         self.assertEqual(self.client.get("/logout").status_code, 405)
 
@@ -161,9 +161,25 @@ class SessionTests(unittest.TestCase):
         with patch.object(main, "get_user_by_id") as lookup:
             response = self.client.get("/", follow_redirects=False)
             lookup.assert_not_called()
-        self.assertEqual(response.status_code, 303)
-        self.assertEqual(response.headers["location"], "/login")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Save anything useful.", response.text)
         self.assertNotIn("Signed in as", response.text)
+
+    def test_landing_is_public_without_loading_private_data(self):
+        with patch.object(main, "get_common_context") as common, patch.object(main, "get_notes") as records:
+            response = self.client.get("/", follow_redirects=False)
+        self.assertEqual(response.status_code, 200)
+        common.assert_not_called()
+        records.assert_not_called()
+        self.assertIn('href="/register"', response.text)
+        self.assertIn('href="/login"', response.text)
+        self.assertIn('data-zh="个人互联网记忆库"', response.text)
+        self.assertNotIn('account-trigger', response.text)
+        self.assertNotIn('csrf_token', response.text)
+        for path in ("/notes", "/notes/1", "/notes/1/edit", "/notes/not-an-int/edit"):
+            protected = self.client.get(path, follow_redirects=False)
+            self.assertEqual(protected.status_code, 303)
+            self.assertEqual(protected.headers["location"], "/login")
 
     def test_login_ui_and_registration_stay_public(self):
         login = self.client.get("/login")

@@ -1,0 +1,6 @@
+{% macro timestamp(value, kind='updated') -%}
+    {% set date = value|display_datetime %}
+    {% set en = 'Created' if kind == 'created' else 'Updated' %}
+    {% set zh = '创建于' if kind == 'created' else '更新于' %}
+    <time{% if date.iso %} datetime="{{ date.iso }}"{% endif %} data-en="{{ en }} {{ date.en }}" data-zh="{{ zh }} {{ date.zh }}">{{ en }} {{ date.en }}</time>
+{%- endmacro %}

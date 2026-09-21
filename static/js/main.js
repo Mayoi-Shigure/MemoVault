@@ -2,20 +2,47 @@ document.addEventListener("DOMContentLoaded", function () {
     var activeModal = null;
     var modalTrigger = null;
     var languageKey = "memovault-language";
+    var sidebar = document.querySelector('.sidebar');
+    var sidebarToggle = document.querySelector('.mobile-types-toggle');
+    if (sidebar && sidebarToggle) {
+        document.body.classList.add('sidebar-ready');
+        sidebarToggle.hidden = false;
+        sidebarToggle.addEventListener('click', function () {
+            var expanded = sidebar.classList.toggle('is-mobile-open');
+            sidebarToggle.setAttribute('aria-expanded', String(expanded));
+            if (expanded && sidebarScroll) sidebarScroll.scrollTop = savedScroll;
+        });
+        sidebar.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !activeModal && !activeTypeMenu && window.matchMedia('(max-width: 860px)').matches) {
+                sidebar.classList.remove('is-mobile-open');
+                sidebarToggle.setAttribute('aria-expanded', 'false');
+                sidebarToggle.focus();
+            }
+        });
+    }
     var sourcePath = document.body.getAttribute("data-form-return-to");
     if (sourcePath) {
         window.history.replaceState(null, "", sourcePath);
     }
+    document.querySelectorAll('.side-nav a, .mobile-nav a').forEach(function (link) {
+        var path = window.location.pathname;
+        if (link.getAttribute('href') === (path === '/' ? '/' : path.startsWith('/notes') ? '/notes' : '')) {
+            link.setAttribute('aria-current', 'page');
+        }
+    });
     document.querySelectorAll('input[name="return_to"]').forEach(function (input) {
         input.value = window.location.pathname + window.location.search;
     });
 
     var activeTypeMenu = null;
-    function closeTypeMenu() {
+    var typeMenuAnchorTop = null;
+    function closeTypeMenu(restoreFocus) {
         if (!activeTypeMenu) return;
         activeTypeMenu.querySelector(".sidebar-type-menu").hidden = true;
         activeTypeMenu.querySelector(".sidebar-type-more").setAttribute("aria-expanded", "false");
+        var trigger = activeTypeMenu.querySelector(".sidebar-type-more");
         activeTypeMenu = null;
+        if (restoreFocus) trigger.focus();
     }
     document.querySelectorAll(".sidebar-type-more").forEach(function (button) {
         button.addEventListener("click", function () {
@@ -28,6 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
             menu.hidden = false;
             button.setAttribute("aria-expanded", "true");
             var rect = button.getBoundingClientRect();
+            typeMenuAnchorTop = rect.top;
             menu.style.left = Math.max(8, Math.min(rect.right - menu.offsetWidth, window.innerWidth - menu.offsetWidth - 8)) + "px";
             menu.style.top = Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - menu.offsetHeight - 8)) + "px";
         });
@@ -36,9 +64,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (activeTypeMenu && !activeTypeMenu.contains(event.target)) closeTypeMenu();
     });
     document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") closeTypeMenu();
+        if (event.key === "Escape" && activeTypeMenu) {
+            event.preventDefault();
+            closeTypeMenu(true);
+        }
     });
-    window.addEventListener("resize", closeTypeMenu);
+    window.addEventListener("resize", function () { closeTypeMenu(); });
 
     var activeAccount = null;
     function closeAccount(restoreFocus) {
@@ -97,7 +128,8 @@ document.addEventListener("DOMContentLoaded", function () {
     window.addEventListener('resize', function () { closeAccount(false); });
 
     function getSavedLanguage() {
-        var savedLanguage = localStorage.getItem(languageKey);
+        var savedLanguage;
+        try { savedLanguage = localStorage.getItem(languageKey); } catch (error) {}
 
         if (savedLanguage === "zh") {
             return "zh";
@@ -108,6 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function updateLanguageButtons(language) {
         document.querySelectorAll("[data-language]").forEach(function (button) {
+            button.setAttribute("aria-pressed", String(button.getAttribute("data-language") === language));
             if (button.getAttribute("data-language") === language) {
                 button.classList.add("is-active");
             } else {
@@ -156,6 +189,17 @@ document.addEventListener("DOMContentLoaded", function () {
         activeModal = modal;
         modalTrigger = trigger || null;
         closeAccount(false);
+        var branch = modal;
+        while (branch.parentElement && branch.parentElement !== document.body) {
+            Array.from(branch.parentElement.children).forEach(function (element) {
+                if (element !== branch && !element.inert) { element.inert = true; element.setAttribute('data-modal-inert', ''); }
+            });
+            branch = branch.parentElement;
+        }
+        Array.from(document.body.children).forEach(function (element) {
+            if (element !== branch && element.tagName !== 'SCRIPT' && !element.inert) { element.inert = true; element.setAttribute('data-modal-inert', ''); }
+        });
+        modal.inert = false;
         modal.classList.add("is-open");
         modal.setAttribute("aria-hidden", "false");
         document.body.classList.add("modal-open");
@@ -172,6 +216,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        modal.inert = true;
+        document.querySelectorAll('[data-modal-inert]').forEach(function (element) { element.inert = false; element.removeAttribute('data-modal-inert'); });
         modal.classList.remove("is-open");
         modal.setAttribute("aria-hidden", "true");
         document.body.classList.remove("modal-open");
@@ -193,6 +239,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         });
                     }
                     if (account) openAccount(account);
+                } else if (trigger.closest('.sidebar-type-actions')) {
+                    trigger.closest('.sidebar-type-actions').querySelector('.sidebar-type-more').focus();
                 } else if (trigger.getClientRects().length) {
                     trigger.focus();
                 }
@@ -231,6 +279,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.querySelectorAll(".modal-backdrop").forEach(function (modal) {
+        modal.inert = true;
         modal.addEventListener("click", function (event) {
             if (event.target === modal) {
                 closeModal(modal);
@@ -262,7 +311,7 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", function () {
             var language = button.getAttribute("data-language");
 
-            localStorage.setItem(languageKey, language);
+            try { localStorage.setItem(languageKey, language); } catch (error) {}
             applyLanguage(language);
         });
     });
@@ -292,10 +341,12 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        recordList.id = "records-" + typeKey;
+        button.setAttribute("aria-controls", recordList.id);
         function applyCollapsedState(isCollapsed) {
             recordList.hidden = isCollapsed;
             button.setAttribute("aria-expanded", String(!isCollapsed));
-            button.textContent = isCollapsed ? "▸" : "▾";
+            button.textContent = "▾";
         }
 
         applyCollapsedState(collapsedTypes.has(typeKey));
@@ -318,6 +369,38 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     applyLanguage(getSavedLanguage());
+
+    var toast = document.querySelector('[data-toast]');
+    if (toast) {
+        var toastTimer;
+        function dismissToast() {
+            clearTimeout(toastTimer);
+            // Keep keyboard users in the page when they dismiss the close button.
+            if (toast.contains(document.activeElement)) {
+                var main = document.querySelector('.page-shell');
+                main.setAttribute('tabindex', '-1');
+                main.focus({ preventScroll: true });
+                main.addEventListener('blur', function () { main.removeAttribute('tabindex'); }, { once: true });
+            }
+            toast.inert = true;
+            toast.classList.add('is-dismissed');
+            toast.setAttribute('aria-hidden', 'true');
+        }
+        function scheduleToastDismissal() {
+            clearTimeout(toastTimer);
+            if (!toast.classList.contains('is-dismissed') && !toast.matches(':hover, :focus-within')) {
+                toastTimer = setTimeout(dismissToast, 2800);
+            }
+        }
+        toast.querySelector('[data-toast-close]').addEventListener('click', dismissToast);
+        toast.addEventListener('pointerenter', function () { clearTimeout(toastTimer); });
+        toast.addEventListener('pointerleave', scheduleToastDismissal);
+        toast.addEventListener('focusin', function () { clearTimeout(toastTimer); });
+        toast.addEventListener('focusout', function () { queueMicrotask(scheduleToastDismissal); });
+        // Back/forward cache must not replay a previously consumed notification.
+        window.addEventListener('pagehide', dismissToast);
+        scheduleToastDismissal();
+    }
 
     var typeSearch = document.getElementById("sidebar-type-search");
     var hideEmpty = document.getElementById("sidebar-hide-empty");
@@ -368,8 +451,12 @@ document.addEventListener("DOMContentLoaded", function () {
         // Restore after the saved collapse state and language have been applied.
         sidebarScroll.scrollTop = savedScroll;
         sidebarScroll.addEventListener("scroll", function () {
-            closeTypeMenu();
-            try { localStorage.setItem(sidebarScrollKey, String(sidebarScroll.scrollTop)); }
+            // A delayed scroll event from revealing the trigger must not close
+            // a menu that was positioned after that scroll already completed.
+            if (activeTypeMenu && activeTypeMenu.querySelector('.sidebar-type-more').getBoundingClientRect().top !== typeMenuAnchorTop) closeTypeMenu();
+            if (!sidebarScroll.getClientRects().length) return;
+            savedScroll = sidebarScroll.scrollTop;
+            try { localStorage.setItem(sidebarScrollKey, String(savedScroll)); }
             catch (error) {}
         }, { passive: true });
     }

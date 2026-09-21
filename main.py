@@ -8,6 +8,7 @@ import re
 import os
 from config import SESSION_SECRET, SESSION_HTTPS_ONLY
 from starlette.middleware.sessions import SessionMiddleware
+from ui_helpers import success_redirect, consume_flash, display_datetime
 from security import hash_password, verify_password, get_csrf_token, verify_csrf_token
 from argon2.exceptions import HashingError, VerificationError, InvalidHashError
 
@@ -41,7 +42,10 @@ session_secret = SESSION_SECRET
 
 def require_application_login(request: Request):
     # Run before endpoint parameter validation, including malformed resource IDs.
-    if request.url.path in ("/login", "/register", "/logout"):
+    # Only the root GET is public; home() still resolves the signed session.
+    if request.url.path in ("/login", "/register", "/logout") or (
+        request.method == "GET" and request.url.path == "/"
+    ):
         return
     current_user = get_current_user(request)
     if current_user is None:
@@ -77,6 +81,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 templates.env.globals["csrf_token"] = get_csrf_token
+templates.env.globals["consume_flash"] = consume_flash
+templates.env.filters["display_datetime"] = display_datetime
 
 def get_common_context(user_id):
     return {
@@ -117,7 +123,7 @@ def render_form_error(request, return_to, fields, status_code=400):
     user_id = current_user["id"]
     target = valid_return_to(user_id, return_to)
     parts = urlsplit(target)
-    scope = dict(request.scope, method="GET", path=parts.path,
+    scope = dict(request.scope, method="GET", path=parts.path, ui_form_error=True,
                  query_string=parts.query.encode("utf-8"))
     source_request = Request(scope)
     if parts.path == "/":
@@ -258,7 +264,7 @@ def register(request: Request, username: str = Form(""), email: str = Form(""),
 def home(request: Request):
     current_user = get_current_user(request)
     if current_user is None:
-        return RedirectResponse(url="/login", status_code=303)
+        return templates.TemplateResponse(request=request, name="landing.html", context={})
     user_id = current_user["id"]
     recent_notes = get_notes(user_id)[:5]
 
@@ -336,7 +342,7 @@ def create_type(request: Request, name: str = Form(""), return_to: str = Form("/
     else:
         try:
             if add_type(user_id, name):
-                return RedirectResponse(url=valid_return_to(user_id, return_to), status_code=303)
+                return success_redirect(request, valid_return_to(user_id, return_to), "type_created")
             error = ("A type with this name already exists.", "该类型名称已存在，请使用其他名称。")
         except DatabaseError:
             error = ("Unable to create this type right now. Please try again later.",
@@ -367,7 +373,7 @@ def rename_type(request: Request, type_id: int, name: str = Form(""), return_to:
     elif len(name) > 50:
         error = ("Type names must be 50 characters or fewer.", "类型名称不能超过 50 个字符。")
     elif name == current_type["name"] or update_type_name(user_id, type_id, name):
-        return RedirectResponse(url=valid_return_to(user_id, return_to), status_code=303)
+        return success_redirect(request, valid_return_to(user_id, return_to), "type_saved")
     else:
         error = ("A type with this name already exists.", "该类型名称已存在，请使用其他名称。")
 
@@ -411,7 +417,7 @@ def remove_type(request: Request, type_id: int, return_to: str = Form("/notes"))
             selected = parse_qs(parts.query).get("type", [])
             if parts.path == "/notes" and any(v.isascii() and v.isdigit() and int(v) == type_id for v in selected):
                 target = "/notes"
-            return RedirectResponse(url=target, status_code=303)
+            return success_redirect(request, target, "type_deleted")
         else:
             error = ("The type has changed or no longer exists. Please refresh and try again.",
                      "该类型已变更或不存在，请刷新后重试。")
@@ -471,7 +477,7 @@ def create_note(
             if saved_url and not saved_url.startswith(("http://", "https://")):
                 saved_url = "https://" + saved_url
             add_note(user_id, title, content, saved_url, int(type_id) if type_id else None)
-            return RedirectResponse(url=valid_return_to(user_id, return_to), status_code=303)
+            return success_redirect(request, valid_return_to(user_id, return_to), "record_created")
     except DatabaseError:
         error = ("Unable to save this record. Please check the fields and try again.",
                  "无法保存记录，请检查输入后重试。")
@@ -570,10 +576,7 @@ def edit_note(
 
     update_note(user_id, note_id, title, content, url, type_id)
 
-    return RedirectResponse(
-        url=f"/notes/{note_id}",
-        status_code=303
-    )
+    return success_redirect(request, f"/notes/{note_id}", "record_saved")
     
 @app.post("/notes/{note_id}/delete")
 def remove_note(request: Request, note_id: int):
@@ -591,10 +594,7 @@ def remove_note(request: Request, note_id: int):
 
     delete_note(user_id, note_id)
 
-    return RedirectResponse(
-        url="/notes",
-        status_code=303
-    )
+    return success_redirect(request, "/notes", "record_deleted")
 
 
 @app.exception_handler(ResourceNotFound)

@@ -1,0 +1,46 @@
+{% extends "public_base.html" %}
+{% block title %}MemoVault · Personal Web Memory{% endblock %}
+{% block body_class %}landing-page{% endblock %}
+{% block public_navigation %}
+<nav class="public-nav" aria-label="Account" data-aria-label-en="Account" data-aria-label-zh="账户">
+    <a href="/login" data-en="Sign in" data-zh="登录">Sign in</a>
+    <a class="button" href="/register" data-en="Get started" data-zh="开始使用">Get started</a>
+</nav>
+{% endblock %}
+{% block content %}
+<div class="landing-shell">
+    <section class="landing-hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+            <p class="eyebrow" data-en="Personal Web Memory" data-zh="个人互联网记忆库">Personal Web Memory</p>
+            <h1 id="hero-title"><span data-en="Save anything useful." data-zh="收藏有价值的信息。">Save anything useful.</span> <span data-en="Find it when you need it." data-zh="在需要时，重新找到。">Find it when you need it.</span></h1>
+            <p class="hero-description" data-en="A personal library for your notes, websites, articles, videos, tools, projects, and ideas. Keep them together, organized your way." data-zh="笔记、网站、文章、视频、工具、项目与灵感，都放进自己的资料库，按自己的方式整理。">A personal library for your notes, websites, articles, videos, tools, projects, and ideas. Keep them together, organized your way.</p>
+            <div class="action-row"><a class="button" href="/register" data-en="Get started" data-zh="开始使用">Get started</a><a class="button button-secondary" href="/login" data-en="Sign in" data-zh="登录">Sign in</a></div>
+        </div>
+        <figure class="product-preview">
+            <figcaption><strong>MemoVault</strong><span data-en="Library preview · example content" data-zh="资料库预览 · 示例内容">Library preview · example content</span></figcaption>
+            <div class="preview-workspace">
+                <div class="preview-sidebar" aria-hidden="true">
+                    <span class="preview-nav" data-en="Library" data-zh="资料库">Library</span>
+                    <span class="eyebrow" data-en="Types" data-zh="类型">Types</span>
+                    <span data-en="Note" data-zh="笔记">Note</span><span data-en="Website" data-zh="网站">Website</span><span data-en="Article" data-zh="文章">Article</span><span data-en="Video" data-zh="视频">Video</span><span data-en="Tool" data-zh="工具">Tool</span><span data-en="Project" data-zh="项目">Project</span>
+                </div>
+                <div class="preview-records">
+                    <p class="preview-search" data-en="Search your library…" data-zh="搜索你的资料库…">Search your library…</p>
+                    <article><span class="type-badge" data-en="Article" data-zh="文章">Article</span><h2 data-en="Designing for a quieter web" data-zh="让互联网体验更安静">Designing for a quieter web</h2><p data-en="A few ideas worth coming back to." data-zh="留下一些值得回看的想法。">A few ideas worth coming back to.</p></article>
+                    <article><span class="type-badge" data-en="Project" data-zh="项目">Project</span><h2 data-en="Ideas for the next small project" data-zh="下一个小项目的灵感">Ideas for the next small project</h2><p data-en="Notes, references, and a starting point." data-zh="笔记、参考资料，以及一个起点。">Notes, references, and a starting point.</p></article>
+                    <article><span class="type-badge" data-en="Tool" data-zh="工具">Tool</span><h2 data-en="Useful tools for everyday work" data-zh="日常工作中的实用工具">Useful tools for everyday work</h2><p data-en="Keep the things that help, close at hand." data-zh="把用得上的资料，放在随手可及的地方。">Keep the things that help, close at hand.</p></article>
+                </div>
+            </div>
+        </figure>
+    </section>
+    <section class="landing-flow" aria-labelledby="flow-title">
+        <h2 id="flow-title" data-en="A simple rhythm for useful information." data-zh="让有用的信息，有序留下。">A simple rhythm for useful information.</h2>
+        <div class="flow-grid">
+            <article><span class="flow-number" aria-hidden="true">01</span><h3 data-en="Save" data-zh="保存">Save</h3><p data-en="Keep a title, a link, and your own notes for something you want to revisit." data-zh="记下标题、链接与笔记，留住值得回看的信息。">Keep a title, a link, and your own notes for something you want to revisit.</p></article>
+            <article><span class="flow-number" aria-hidden="true">02</span><h3 data-en="Organize" data-zh="整理">Organize</h3><p data-en="Group records by Type, from articles and tools to categories of your own." data-zh="按类型整理记录，从文章、工具到自定义分类。">Group records by Type, from articles and tools to categories of your own.</p></article>
+            <article><span class="flow-number" aria-hidden="true">03</span><h3 data-en="Find" data-zh="找回">Find</h3><p data-en="Search titles and content, or browse by Type to find what you need." data-zh="搜索标题与内容，或按类型浏览，找回需要的资料。">Search titles and content, or browse by Type to find what you need.</p></article>
+        </div>
+    </section>
+    <section class="landing-cta"><h2 data-en="Build your personal memory for the web." data-zh="建立属于自己的互联网记忆库。">Build your personal memory for the web.</h2><a class="button" href="/register" data-en="Get started" data-zh="开始使用">Get started</a></section>
+</div>
+{% endblock %}

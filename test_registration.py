@@ -49,7 +49,10 @@ class RegistrationTests(unittest.TestCase):
         self.assertNotEqual(hashed, " password ")
         self.assertEqual(response.status_code, 303)
         self.assertEqual(response.headers["location"], "/register?success=1")
-        self.assertEqual(self.client.get("/", follow_redirects=False).headers["location"], "/login")
+        landing = self.client.get("/", follow_redirects=False)
+        self.assertEqual(landing.status_code, 200)
+        self.assertIn("Save anything useful.", landing.text)
+        self.assertEqual(self.client.get("/notes", follow_redirects=False).headers["location"], "/login")
 
     def test_validation_failure_preserves_escaped_identity_only(self):
         with patch.object(main, "create_user") as create:

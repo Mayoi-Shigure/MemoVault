@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_datetime.html" import timestamp %}
 
 {% block title %}{{ note.title }}{% endblock %}
 
@@ -15,38 +16,30 @@
                 {% include "_type_badge.html" %}
             </div>
 
-            <div class="record-meta-panel">
-                {% if note.url %}
-                    <p>
-                        <span data-en="Source" data-zh="来源">Source</span>
-                        <a href="{{ note.url }}" target="_blank" rel="noopener noreferrer">
-                            {{ note.url }}
-                        </a>
-                    </p>
-                {% endif %}
-
-                <p>
-                    <span data-en="Created" data-zh="创建时间">Created</span>
-                    <time>{{ note.created_at }}</time>
-                </p>
-
-                <p>
-                    <span data-en="Updated" data-zh="更新时间">Updated</span>
-                    <time>{{ note.updated_at }}</time>
-                </p>
-            </div>
+            {% if note.url %}
+                <div class="reader-source">
+                    <span class="source-label" data-en="Source" data-zh="来源">Source</span>
+                    <a class="source-url" title="{{ note.url }}" href="{{ note.url }}" target="_blank" rel="noopener noreferrer">{{ note.url }}</a>
+                    <a class="source-open" href="{{ note.url }}" target="_blank" rel="noopener noreferrer"><span data-en="Open original" data-zh="访问原链接">Open original</span> <span aria-hidden="true">↗</span></a>
+                </div>
+            {% endif %}
         </header>
 
         <div class="reader-content">
-            <p>{{ note.content }}</p>
+            <p>{% if note.content %}{{ note.content }}{% else %}<span class="text-muted" data-en="No content added." data-zh="尚未添加内容。">No content added.</span>{% endif %}</p>
+        </div>
+
+        <div class="record-meta-panel">
+            {{ timestamp(note.created_at, 'created') }}
+            {{ timestamp(note.updated_at) }}
         </div>
 
         <footer class="reader-actions">
-            <a class="button button-secondary" href="/notes/{{ note.id }}/edit" data-en="Edit" data-zh="编辑">
+            <a class="button" href="/notes/{{ note.id }}/edit" data-en="Edit" data-zh="编辑">
                 Edit
             </a>
 
-            <button class="button-danger" type="button" data-modal-open="delete-record-modal" data-en="Delete" data-zh="删除">
+            <button class="button-danger button-quiet" type="button" data-modal-open="delete-record-modal" data-en="Delete" data-zh="删除">
                 Delete
             </button>
         </footer>
@@ -68,7 +61,7 @@
             <form action="/notes/{{ note.id }}/delete" method="POST">
                 {% include "_csrf_input.html" %}
                 <div class="modal-actions">
-                    <button class="button button-secondary" type="button" data-modal-close data-en="Cancel" data-zh="取消">
+                    <button class="button button-secondary" type="button" data-modal-close data-modal-initial-focus data-en="Cancel" data-zh="取消">
                         Cancel
                     </button>
                     <button class="button-danger" type="submit" data-en="Delete" data-zh="删除">

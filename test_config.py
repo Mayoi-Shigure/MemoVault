@@ -18,7 +18,7 @@ class ConfigTests(unittest.TestCase):
         self.cwd = Path(temporary.name) / 'other-directory'
         self.cwd.mkdir()
         (self.cwd / 'static').mkdir()
-        for name in ('config.py', 'main.py', 'database.py', 'security.py'):
+        for name in ('config.py', 'main.py', 'database.py', 'security.py', 'ui_helpers.py'):
             shutil.copyfile(Path(__file__).resolve().parent / name, self.root / name)
         self.env = dict(os.environ)
         for key in ('APP_ENV', 'DB_HOST', 'DB_PORT', 'DB_USER', 'DB_NAME',

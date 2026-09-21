@@ -4,17 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}MemoVault{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}?v=public-v2">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}?v=polish-v1">
 </head>
-<body class="public-page">
+<body class="public-page {% block body_class %}{% endblock %}">
     <header class="public-header">
         <a class="brand" href="/">
             <span class="brand-mark">M</span>
             <span>
                 <span class="brand-name">MemoVault</span>
-                <span class="brand-subtitle" data-en="Digital memory vault" data-zh="数字记忆库">Digital memory vault</span>
+                <span class="brand-subtitle" data-en="Personal Web Memory" data-zh="个人互联网记忆库">Personal Web Memory</span>
             </span>
         </a>
+        {% block public_navigation %}{% endblock %}
         <div class="public-language-switcher" aria-label="Language switcher" data-aria-label-en="Language switcher" data-aria-label-zh="语言切换">
             <button class="language-option is-active" type="button" data-language="en">EN</button>
             <button class="language-option" type="button" data-language="zh">中文</button>
@@ -23,6 +24,6 @@
     <main class="public-main">
         {% block content %}{% endblock %}
     </main>
-    <script src="{{ url_for('static', path='/js/main.js') }}?v=library-v1-13"></script>
+    <script src="{{ url_for('static', path='/js/main.js') }}?v=polish-v1"></script>
 </body>
 </html>

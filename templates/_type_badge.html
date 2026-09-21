@@ -1,5 +1,5 @@
 {% if note.type_name %}
-    <span class="type-badge">{{ note.type_name }}</span>
+    <span class="type-badge" title="{{ note.type_name }}">{{ note.type_name }}</span>
 {% else %}
     <span class="type-badge" data-en="Ungrouped" data-zh="未分组">Ungrouped</span>
 {% endif %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_datetime.html" import timestamp %}
 
 {% block title %}Library - MemoVault{% endblock %}
 
@@ -16,7 +17,8 @@
 
     <form class="search-form library-search" action="/notes" method="GET">
         <input
-            type="text"
+            type="search"
+            aria-label="Search titles and content" data-aria-label-en="Search titles and content" data-aria-label-zh="搜索标题和内容"
             name="q"
             placeholder="Search records..."
             data-placeholder-en="Search records..."
@@ -31,7 +33,25 @@
 
     <section class="content-section">
         <div class="section-heading">
-            <h2 data-en="All Records" data-zh="全部记录">All Records</h2>
+            {% if q %}
+                <h2 data-en="Search results" data-zh="搜索结果">Search results</h2>
+            {% elif selected_type and not invalid_type and not type_not_found %}
+                <h2 class="filter-heading">
+                    <span data-en="Type" data-zh="类型">Type</span>
+                    {% if selected_type == 'ungrouped' %}
+                        <span class="type-badge" data-en="Ungrouped" data-zh="未分组">Ungrouped</span>
+                    {% else %}
+                        {% for type in types %}
+                            {% if type.id|string == selected_type %}
+                                <span class="type-badge">{{ type.name }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </h2>
+            {% else %}
+                <h2 data-en="All Records" data-zh="全部记录">All Records</h2>
+            {% endif %}
+            {% if q or selected_type %}<a class="clear-filter" href="/notes" data-en="Clear filters" data-zh="清除筛选">Clear filters</a>{% endif %}
             {% if q %}
                 <p>
                     <span data-en="Search results for" data-zh="搜索结果：">Search results for</span>
@@ -86,7 +106,7 @@
                 <div class="card-grid">
                     {% for note in notes %}
                         <article class="record-card">
-                            <a class="card-title" href="/notes/{{ note.id }}">
+                            <a class="card-title" title="{{ note.title }}" href="/notes/{{ note.id }}">
                                 {{ note.title }}
                             </a>
 
@@ -107,8 +127,7 @@
                             {% endif %}
 
                             <p class="card-meta">
-                                <span data-en="Updated" data-zh="更新时间">Updated</span>
-                                {{ note.updated_at }}
+                                {{ timestamp(note.updated_at) }}
                             </p>
                         </article>
                     {% endfor %}
@@ -118,10 +137,14 @@
                 {% if q %}
                     <h2 data-en="No matching records" data-zh="没有匹配的记录">No matching records</h2>
                     <p data-en="Try a different keyword or add a new record to your library." data-zh="可以换一个关键词，或向资料库添加新记录。">Try a different keyword or add a new record to your library.</p>
+                {% elif selected_type %}
+                    <h2 data-en="No records in this type" data-zh="此类型下暂无记录">No records in this type</h2>
+                    <p data-en="Add a record here, or explore another type." data-zh="在此添加记录，或浏览其他类型。">Add a record here, or explore another type.</p>
                 {% else %}
                     <h2 data-en="No records yet" data-zh="还没有记录">No records yet</h2>
                     <p data-en="Add your first record, link, idea, article, or useful reference." data-zh="添加你的第一条记录、链接、想法、文章或有用资料。">Add your first record, link, idea, article, or useful reference.</p>
                 {% endif %}
+                <button type="button" data-modal-open="add-record-modal" data-en="Add Record" data-zh="新增记录">Add Record</button>
             </div>
         {% endif %}
     </section>

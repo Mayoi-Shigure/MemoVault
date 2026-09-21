@@ -1,0 +1,8 @@
+{% set flash = consume_flash(request) %}
+{% if flash %}
+<div class="success-toast" data-toast>
+    <span class="toast-check" aria-hidden="true">✓</span>
+    <span role="status" aria-live="polite" aria-atomic="true" data-en="{{ flash[0] }}" data-zh="{{ flash[1] }}">{{ flash[0] }}</span>
+    <button class="icon-button toast-close" type="button" data-toast-close aria-label="Dismiss notification" data-aria-label-en="Dismiss notification" data-aria-label-zh="关闭提示">&times;</button>
+</div>
+{% endif %}

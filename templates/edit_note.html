@@ -19,7 +19,9 @@
             <form action="/notes/{{ note.id }}/edit" method="POST">
                 {% include "_csrf_input.html" %}
                 <p>
+                    <label for="edit-title" data-en="Title" data-zh="标题">Title</label>
                     <input
+                        id="edit-title"
                         type="text"
                         name="title"
                         value="{{ note.title }}"
@@ -50,11 +52,14 @@
                 </p>
 
                 <p>
-                    <textarea name="content">{{ note.content }}</textarea>
+                    <label for="edit-content" data-en="Content (optional)" data-zh="内容（可选）">Content (optional)</label>
+                    <textarea id="edit-content" name="content">{{ note.content }}</textarea>
                 </p>
 
                 <p>
+                    <label for="edit-url" data-en="URL (optional)" data-zh="链接（可选）">URL (optional)</label>
                     <input
+                        id="edit-url"
                         type="text"
                         name="url"
                         value="{{ note.url or '' }}"
