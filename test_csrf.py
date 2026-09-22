@@ -155,13 +155,13 @@ class CSRFTests(test_isolation.IsolationFixture):
         self.assertEqual(self.session(self.client)['user_id'], self.a)
         response = self.client.post(form['action'], data=fields, follow_redirects=False)
         self.assertEqual(response.status_code, 303)
-        self.assertEqual(response.headers['location'], '/login')
+        self.assertEqual(response.headers['location'], '/')
         self.assertIsNone(self.client.cookies.get('session'))
 
     def test_logout_clears_token_and_old_token_fails_in_new_session(self):
         response = self.client.post('/logout', data={'csrf_token': self.token_a}, follow_redirects=False)
         self.assertEqual(response.status_code, 303)
-        self.assertEqual(response.headers['location'], '/login')
+        self.assertEqual(response.headers['location'], '/')
         self.assertIn('expires=Thu, 01 Jan 1970', response.headers['set-cookie'])
         self.assertIsNone(self.client.cookies.get('session'))
         self.assertEqual(self.client.get('/notes', follow_redirects=False).status_code, 303)

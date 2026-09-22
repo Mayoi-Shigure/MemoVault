@@ -230,7 +230,7 @@ def get_current_user(request: Request):
 @app.post("/logout")
 def logout(request: Request):
     request.session.clear()
-    return RedirectResponse(url="/login", status_code=303)
+    return RedirectResponse(url="/", status_code=303)
 
 
 @app.post("/register", response_class=HTMLResponse)

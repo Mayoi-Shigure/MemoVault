@@ -136,15 +136,18 @@ class SessionTests(unittest.TestCase):
         self.authenticate()
         response = csrf_post(self.client, "/logout", follow_redirects=False)
         self.assertEqual(response.status_code, 303)
-        self.assertEqual(response.headers["location"], "/login")
+        self.assertEqual(response.headers["location"], "/")
         self.assertIn("expires=Thu, 01 Jan 1970", response.headers["set-cookie"])
+        self.assertIsNone(self.client.cookies.get("session"))
         with patch.object(main, "get_user_by_id") as lookup:
             dashboard = self.client.get("/", follow_redirects=False)
             lookup.assert_not_called()
         self.assertNotIn("Signed in as", dashboard.text)
         self.assertEqual(dashboard.status_code, 200)
         self.assertIn("Save anything useful.", dashboard.text)
-        self.assertEqual(self.client.get("/notes", follow_redirects=False).status_code, 303)
+        protected = self.client.get("/notes", follow_redirects=False)
+        self.assertEqual(protected.status_code, 303)
+        self.assertEqual(protected.headers["location"], "/login")
         self.assertEqual(self.client.get("/logout").status_code, 405)
 
     def test_deleted_user_and_invalid_identity_clear_session(self):
